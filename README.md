@@ -1,8 +1,5 @@
 # Ansible Role: Teleport Node Service
 
-[![Ansible Galaxy](https://img.shields.io/badge/Ansible%20Galaxy-mdsketch.teleport-blueviolet)](https://galaxy.ansible.com/zen/teleport)
-![Ansible Quality Score](https://img.shields.io/ansible/quality/58613?style=plastic)
-
 An ansible role to install or update the teleport node service and teleport config using native packages (RPM and DEB).
 
 If you add your own teleport config file template you can run any node services you want (ssh, app, database, kubernetes)
