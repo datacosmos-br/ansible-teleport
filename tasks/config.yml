@@ -18,9 +18,6 @@
   ansible.builtin.include_tasks: auth_conf.yml
   when: teleport_config_file.stat.exists
 
-- name: "Dispatch on installation method"
-  ansible.builtin.include_tasks: "{{ 'install_via_' + teleport_install_method + '.yml' }}"
-
 - name: Create teleport config
   become: true
   ansible.builtin.template:

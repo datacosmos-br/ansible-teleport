@@ -59,13 +59,6 @@ Change `teleport_architecture` any of the following:
 - `386-bin` if you are running on i386/Intel based devices.
 
 ```
-teleport_install_method: "tar"
-```
-The method used for installation, currently supported by the role:
-- `tar` Download an archive.
-- `apt` Install gravitational keyring and the packages requested via apt.
-
-```
 teleport_edition: "oss"
 ```
 This is only used with teleport_install_method: "apt":
