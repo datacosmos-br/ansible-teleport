@@ -4,16 +4,17 @@
   community.crypto.openssl_csr:
     path: "{{ teleport_csr_path }}"
     privatekey_path: "{{ teleport_proxy_tls_key }}"
-    subject: >
-      /C={{ teleport_tls_country | default('BR') }}
-      /ST={{ teleport_tls_state | default('Sao Paulo') }}
-      /L={{ teleport_tls_locality | default('Sao Paulo') }}
-      /O={{ teleport_tls_organization | default('Datacosmos') }}
-      /CN={{ teleport_proxy_server }}
-    subject_alt_name: "DNS:{{ teleport_proxy_server }}"
+    digest: "sha256"
+    version: 1
+    country_name: "{{ teleport_tls_country | default('BR') }}"
+    state_or_province_name: "{{ teleport_tls_state | default('Sao Paulo') }}"
+    locality_name: "{{ teleport_tls_locality | default('Sao Paulo') }}"
+    organization_name: "{{ teleport_tls_organization | default('Datacosmos') }}"
+    common_name: "{{ teleport_proxy_server }}"
+    subject_alt_name:
+      - "DNS:{{ teleport_proxy_server }}"
   register: teleport_csr
   tags: [security]
-
 
 - name: Generate self-signed certificate from CSR
   community.crypto.x509_certificate:
@@ -26,5 +27,4 @@
     selfsigned_not_after: "+{{ teleport_tls_valid_days | default(365) }}d"
     selfsigned_not_before: "now"
     selfsigned_create_subject_key_identifier: create_if_not_provided
-
   tags: [security]
