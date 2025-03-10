@@ -8,3 +8,27 @@
     mode: "0600"
     backup: "{{ teleport_backup_config }}"
   notify: restart teleport
+
+- name: "Check if a teleport configuration is present"
+  ansible.builtin.stat:
+    path: "{{ teleport_config_path }}"
+  register:  teleport_config_file
+
+- name: "Save the precedent configuration or erase database artifacts"
+  ansible.builtin.include_tasks: auth_conf.yml
+  when: teleport_config_file.stat.exists
+
+- name: "Dispatch on installation method"
+  ansible.builtin.include_tasks: "{{ 'install_via_' + teleport_install_method + '.yml' }}"
+
+- name: Create teleport config
+  become: true
+  ansible.builtin.template:
+    src: "{{ teleport_config_template }}"
+    dest: "{{ teleport_config_path }}"
+    owner: "root"
+    group: "root"
+    mode: "0600"
+    backup: "{{ backup_teleport_config }}"
+  when: teleport_template_config
+  notify: Reload_Teleport
