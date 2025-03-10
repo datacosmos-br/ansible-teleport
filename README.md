@@ -61,7 +61,6 @@ Change `teleport_architecture` any of the following:
 ```
 teleport_edition: "oss"
 ```
-This is only used with teleport_install_method: "apt":
 - `oss` if you are using the community edition.
 - `enterprise` if you are using the self-hosted edition.
 - `cloud` if you are using the cloud edition.
