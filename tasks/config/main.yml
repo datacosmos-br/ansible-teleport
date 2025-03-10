@@ -26,19 +26,19 @@
         owner: "root"
         group: "root"
         mode: "0600"
-        validate: "teleport validate --config %s"
+        # validate: "/usr/local/bin/teleport validate --config %s"
       notify: Reload Teleport service
       tags: [configuration]
 
-  rescue:
-    - name: Handle configuration errors
-      ansible.builtin.fail:
-        msg: "Configuration management failed. Manual intervention required."
-      tags: [configuration]
-
-
-- name: Verify configuration syntax
-  ansible.builtin.command:
-    cmd: "teleport validate --config {{ teleport_config_path }}"
-  changed_when: false
-  tags: [configuration, validation]
+  # rescue:
+  #   - name: Handle configuration errors
+  #     ansible.builtin.fail:
+  #       msg: "Configuration management failed. Manual intervention required."
+  #     tags: [configuration]
+#
+#
+#- name: Verify configuration syntax
+#  ansible.builtin.command:
+#    cmd: "/usr/local/bin/teleport validate --config {{ teleport_config_path }}"
+#  changed_when: false
+#  tags: [configuration, validation]

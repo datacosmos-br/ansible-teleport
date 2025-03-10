@@ -13,14 +13,17 @@
 
 - name: Extract CA PIN from response content
   ansible.builtin.set_fact:
-    ca_pin_extracted: "{{ ca_pin_response.content | regex_search('(^sha256:[a-f0-9]{64}$)', multiline=True) }}"
-  when: ca_pin_response is defined
+    ca_pin_extracted: "{{ ca_pin_response.get('content', '') | regex_search('(^sha256:[a-f0-9]{64}$)', multiline=True) }}"
+  when:
+    - teleport_fetch_ca_pin | bool
+    - ca_pin_response is defined
   tags: [security]
 
 - name: Set CA PIN fact if extracted value is valid
   ansible.builtin.set_fact:
     teleport_ca_pin: "{{ ca_pin_extracted }}"
   when:
+    - teleport_fetch_ca_pin | bool
     - ca_pin_extracted is defined
     - (ca_pin_extracted | length) > 0
   tags: [security]

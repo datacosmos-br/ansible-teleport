@@ -21,16 +21,28 @@ ssh_service:
   {% if teleport_ssh_labels or teleport_labels %}
   labels:
     {% if teleport_labels %}
-    {# Global labels #}
-    {% for label in teleport_labels %}
-    {{ label.key }}: "{{ label.value }}"
-    {% endfor %}
+      {# Global labels #}
+      {% for label in teleport_labels %}
+        {% if label.key is defined %}
+          {{ label.key }}: "{{ label.value }}"
+        {% else %}
+          {% for key, value in label.items() %}
+            {{ key }}: "{{ value }}"
+          {% endfor %}
+        {% endif %}
+      {% endfor %}
     {% endif %}
     {% if teleport_ssh_labels %}
-    {# Service-specific labels #}
-    {% for label in teleport_ssh_labels %}
-    {{ label.key }}: "{{ label.value }}"
-    {% endfor %}
+      {# Service-specific labels #}
+      {% for label in teleport_ssh_labels %}
+        {% if label.key is defined %}
+          {{ label.key }}: "{{ label.value }}"
+        {% else %}
+          {% for key, value in label.items() %}
+            {{ key }}: "{{ value }}"
+          {% endfor %}
+        {% endif %}
+      {% endfor %}
     {% endif %}
   {% endif %}
   {% if teleport_ssh_commands %}
@@ -47,7 +59,13 @@ proxy_service:
   {% if teleport_proxy_labels %}
   labels:
     {% for label in teleport_proxy_labels %}
-    {{ label.key }}: "{{ label.value }}"
+      {% if label.key is defined %}
+        {{ label.key }}: "{{ label.value }}"
+      {% else %}
+        {% for key, value in label.items() %}
+          {{ key }}: "{{ value }}"
+        {% endfor %}
+      {% endif %}
     {% endfor %}
   {% endif %}
   {% if teleport_proxy_tls_enabled | default(true) %}
@@ -68,14 +86,26 @@ kubernetes_service:
   {% if teleport_kube_labels or teleport_labels %}
   labels:
     {% if teleport_labels %}
-    {% for label in teleport_labels %}
-    {{ label.key }}: "{{ label.value }}"
-    {% endfor %}
+      {% for label in teleport_labels %}
+        {% if label.key is defined %}
+          {{ label.key }}: "{{ label.value }}"
+        {% else %}
+          {% for key, value in label.items() %}
+            {{ key }}: "{{ value }}"
+          {% endfor %}
+        {% endif %}
+      {% endfor %}
     {% endif %}
     {% if teleport_kube_labels %}
-    {% for label in teleport_kube_labels %}
-    {{ label.key }}: "{{ label.value }}"
-    {% endfor %}
+      {% for label in teleport_kube_labels %}
+        {% if label.key is defined %}
+          {{ label.key }}: "{{ label.value }}"
+        {% else %}
+          {% for key, value in label.items() %}
+            {{ key }}: "{{ value }}"
+          {% endfor %}
+        {% endif %}
+      {% endfor %}
     {% endif %}
   {% endif %}
   resources:
@@ -85,7 +115,7 @@ kubernetes_service:
       {% if cluster.labels %}
       labels:
         {% for key, value in cluster.labels.items() %}
-        {{ key }}: "{{ value }}"
+          {{ key }}: "{{ value }}"
         {% endfor %}
       {% endif %}
     {% endfor %}
@@ -98,14 +128,26 @@ db_service:
   {% if teleport_db_labels or teleport_labels %}
   labels:
     {% if teleport_labels %}
-    {% for label in teleport_labels %}
-    {{ label.key }}: "{{ label.value }}"
-    {% endfor %}
+      {% for label in teleport_labels %}
+        {% if label.key is defined %}
+          {{ label.key }}: "{{ label.value }}"
+        {% else %}
+          {% for key, value in label.items() %}
+            {{ key }}: "{{ value }}"
+          {% endfor %}
+        {% endif %}
+      {% endfor %}
     {% endif %}
     {% if teleport_db_labels %}
-    {% for label in teleport_db_labels %}
-    {{ label.key }}: "{{ label.value }}"
-    {% endfor %}
+      {% for label in teleport_db_labels %}
+        {% if label.key is defined %}
+          {{ label.key }}: "{{ label.value }}"
+        {% else %}
+          {% for key, value in label.items() %}
+            {{ key }}: "{{ value }}"
+          {% endfor %}
+        {% endif %}
+      {% endfor %}
     {% endif %}
   {% endif %}
   resources:
@@ -116,7 +158,7 @@ db_service:
       {% if db.labels %}
       labels:
         {% for key, value in db.labels.items() %}
-        {{ key }}: "{{ value }}"
+          {{ key }}: "{{ value }}"
         {% endfor %}
       {% endif %}
     {% endfor %}
@@ -129,10 +171,22 @@ app_service:
   {% if teleport_labels or teleport_apps_labels %}
   labels:
     {% for label in teleport_labels %}
-    {{ label.key }}: "{{ label.value }}"
+      {% if label.key is defined %}
+        {{ label.key }}: "{{ label.value }}"
+      {% else %}
+        {% for key, value in label.items() %}
+          {{ key }}: "{{ value }}"
+        {% endfor %}
+      {% endif %}
     {% endfor %}
     {% for label in teleport_apps_labels %}
-    {{ label.key }}: "{{ label.value }}"
+      {% if label.key is defined %}
+        {{ label.key }}: "{{ label.value }}"
+      {% else %}
+        {% for key, value in label.items() %}
+          {{ key }}: "{{ value }}"
+        {% endfor %}
+      {% endif %}
     {% endfor %}
   {% endif %}
   resources:
@@ -142,7 +196,7 @@ app_service:
       {% if app.labels %}
       labels:
         {% for key, value in app.labels.items() %}
-        {{ key }}: "{{ value }}"
+          {{ key }}: "{{ value }}"
         {% endfor %}
       {% endif %}
     {% endfor %}
@@ -156,10 +210,22 @@ windows_desktop_service:
   {% if teleport_labels or teleport_windows_labels %}
   labels:
     {% for label in teleport_labels %}
-    {{ label.key }}: "{{ label.value }}"
+      {% if label.key is defined %}
+        {{ label.key }}: "{{ label.value }}"
+      {% else %}
+        {% for key, value in label.items() %}
+          {{ key }}: "{{ value }}"
+        {% endfor %}
+      {% endif %}
     {% endfor %}
     {% for label in teleport_windows_labels %}
-    {{ label.key }}: "{{ label.value }}"
+      {% if label.key is defined %}
+        {{ label.key }}: "{{ label.value }}"
+      {% else %}
+        {% for key, value in label.items() %}
+          {{ key }}: "{{ value }}"
+        {% endfor %}
+      {% endif %}
     {% endfor %}
   {% endif %}
 {% endif %}
