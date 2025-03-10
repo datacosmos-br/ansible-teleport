@@ -27,7 +27,7 @@
         group: "root"
         mode: "0600"
         # validate: "/usr/local/bin/teleport validate --config %s"
-      notify: Reload teleport service
+      notify: Reload Teleport service
       tags: [configuration]
 
 - name: Determine if security credentials changed
@@ -53,14 +53,14 @@
       changed_when: false
       when: not is_container | bool
 
-    - name: Generate new configuration
-      ansible.builtin.command: teleport configure --config={{ teleport_config_path }}
-      register: config_generate
-      changed_when: config_check.stat.checksum != (teleport_config_path | checksum)
-      notify:
-        - Restart Teleport service
-        - Log configuration change
-      when: not is_container | bool
+    # - name: Generate new configuration
+    #   ansible.builtin.command: teleport configure --config={{ teleport_config_path }}
+    #   register: config_generate
+    #   changed_when: config_check.stat.checksum != (teleport_config_path | checksum)
+    #   notify:
+    #     - Restart Teleport service
+    #     - Log configuration change
+    #   when: not is_container | bool
 
     - name: Flush ephemeral data
       ansible.builtin.file:

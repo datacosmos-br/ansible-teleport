@@ -38,6 +38,7 @@
       ansible.builtin.include_tasks: security/ca_pin.yml
     - name: Manage TLS certificates
       ansible.builtin.include_tasks: security/certificate.yml
+      when: teleport_proxy_enabled | bool
     - name: Handle authentication config
       ansible.builtin.include_tasks: security/auth.yml
 

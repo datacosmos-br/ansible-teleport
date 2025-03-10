@@ -1,5 +1,5 @@
 ---
-- name: Reload teleport service
+- name: Reload Teleport service
   ansible.builtin.systemd:
     name: teleport
     state: reloaded
@@ -14,3 +14,9 @@
 - name: Log configuration change
   ansible.builtin.debug:
     msg: "Teleport configuration was successfully updated"
+
+- name: Reload systemd daemon
+  ansible.builtin.systemd:
+    daemon_reload: yes
+  become: true
+  changed_when: false
