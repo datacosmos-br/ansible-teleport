@@ -56,7 +56,7 @@ teleport_validate_certs: true
 teleport_labels_injetct_realhostname:
 teleport_labels:
   - key: "real_hostname"
-    value: "{{ ansible_hostname }}"
+    value: "{{ ansible_fqdn }}"
 
 # SSH Service
 teleport_ssh_enabled: true

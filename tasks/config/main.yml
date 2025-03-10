@@ -27,7 +27,7 @@
         group: "root"
         mode: "0600"
         # validate: "/usr/local/bin/teleport validate --config %s"
-      notify: Reload Teleport service
+      notify: Reload teleport service
       tags: [configuration]
 
   # rescue:
