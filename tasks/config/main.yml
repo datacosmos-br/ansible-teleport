@@ -1,5 +1,11 @@
 # tasks/config/main.yml
 ---
+- name: Check existing configuration
+  ansible.builtin.stat:
+    path: "{{ teleport_config_path }}"
+  register: teleport_config_status
+  tags: [configuration]
+
 - name: Manage Teleport configuration lifecycle
   block:
     - name: Backup existing configuration
@@ -8,19 +14,28 @@
         dest: "{{ teleport_config_path }}.bak"
         remote_src: true
         mode: "0600"
-      when: teleport_backup_config | bool
+      when:
+        - teleport_backup_config | bool
+        - teleport_config_status.stat.exists
       tags: [configuration]
 
-- name: Apply new configuration template
-  ansible.builtin.template:
-    src: "{{ teleport_config_template }}"  # Normalmente 'templates/default_teleport.yaml.j2'
-    dest: "{{ teleport_config_path }}"     # Padrão: '/etc/teleport.yaml'
-    owner: "root"
-    group: "root"
-    mode: "0600"
-    validate: "teleport validate --config %s"  # Validação sintática
-  notify: Reload Teleport service
-  tags: [configuration]
+    - name: Apply new configuration template
+      ansible.builtin.template:
+        src: "{{ teleport_config_template }}"
+        dest: "{{ teleport_config_path }}"
+        owner: "root"
+        group: "root"
+        mode: "0600"
+        validate: "teleport validate --config %s"
+      notify: Reload Teleport service
+      tags: [configuration]
+
+  rescue:
+    - name: Handle configuration errors
+      ansible.builtin.fail:
+        msg: "Configuration management failed. Manual intervention required."
+      tags: [configuration]
+
 
 - name: Verify configuration syntax
   ansible.builtin.command:
