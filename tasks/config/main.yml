@@ -2,11 +2,34 @@
 ---
 - name: Validate and enforce CA PIN security
   block:
+
+    - name: Ensure teleport_config_dir directory exists
+      ansible.builtin.file:
+        path: "{{ teleport_config_dir }}/security"
+        state: directory
+        owner: root
+        group: root
+        mode: '0700'
+      become: true
+      tags: [configuration, security]
+
     - name: Ensure CA PIN directory exists
       ansible.builtin.file:
         path: "{{ teleport_config_dir }}/security"
         state: directory
+        owner: root
+        group: root
         mode: "0700"
+      tags: [configuration, security]
+
+    - name: Ensure teleport_proxy_tls_dir directory exists
+      ansible.builtin.file:
+        path: "{{ teleport_proxy_tls_dir }}/security"
+        state: directory
+        owner: root
+        group: root
+        mode: '0700'
+      become: true
       tags: [configuration, security]
 
     - name: Retrieve or validate CA PIN
