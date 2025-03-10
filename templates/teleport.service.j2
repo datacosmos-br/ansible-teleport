@@ -1,0 +1,21 @@
+[Unit]
+Description=Teleport SSH Service
+After=network.target
+Documentation=https://goteleport.com/docs/
+
+[Service]
+Type=simple
+User={{ teleport_service_user | default('teleport') }}
+Group={{ teleport_system_group | default('teleport') }}
+EnvironmentFile=-/etc/default/teleport
+ExecStart=/usr/local/bin/teleport start --config={{ teleport_config_path }}
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=on-failure
+RestartSec=5
+LimitNOFILE=524288
+PrivateTmp=true
+ProtectSystem=full
+CapabilityBoundingSet=CAP_SETUID CAP_SETGID CAP_SYS_CHROOT CAP_AUDIT_WRITE
+
+[Install]
+WantedBy=multi-user.target

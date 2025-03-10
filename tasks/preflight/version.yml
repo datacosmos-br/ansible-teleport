@@ -22,6 +22,6 @@
   ansible.builtin.assert:
     that:
       - teleport_version is version_compare('14.0.0', '>=')
-      - teleport_version | match('^\\d+\\.\\d+\\.\\d+$')
+      - teleport_version | regex_search('^\\d+\\.\\d+\\.\\d+$') is not none
     msg: "Invalid Teleport version: {{ teleport_version }}"
   tags: [validation, always]

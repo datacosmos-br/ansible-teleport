@@ -1,0 +1,36 @@
+# templates/tls/openssl.cnf.j2
+[ req ]
+default_bits        = 4096
+prompt              = no
+default_md          = sha256
+distinguished_name  = req_distinguished_name
+req_extensions      = v3_req
+x509_extensions     = v3_ca
+
+[ req_distinguished_name ]
+countryName             = {{ teleport_tls_country | default('BR') }}
+stateOrProvinceName     = {{ teleport_tls_state | default('Sao Paulo') }}
+localityName            = {{ teleport_tls_locality | default('Sao Paulo') }}
+organizationName        = {{ teleport_tls_organization | default('Datacosmos') }}
+commonName              = {{ teleport_proxy_server }}
+
+[ v3_req ]
+basicConstraints        = CA:FALSE
+keyUsage                = nonRepudiation, digitalSignature, keyEncipherment
+extendedKeyUsage        = serverAuth, clientAuth
+subjectAltName          = @alt_names
+
+[ v3_ca ]
+subjectKeyIdentifier    = hash
+authorityKeyIdentifier  = keyid:always,issuer
+basicConstraints        = critical, CA:TRUE
+keyUsage                = critical, cRLSign, keyCertSign
+
+[ alt_names ]
+DNS.1 = {{ teleport_proxy_server }}
+{% if teleport_tls_sans is defined %}
+{% for san in teleport_tls_sans %}
+DNS.{{ loop.index + 1 }} = {{ san }}
+{% endfor %}
+{% endif %}
+IP.1 = 127.0.0.1

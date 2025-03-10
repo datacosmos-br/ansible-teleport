@@ -20,11 +20,14 @@ teleport_create_config: true
 teleport_ec2_join_token: ec2-teleport-join-token
 teleport_config_path: "/etc/teleport.yaml"
 teleport_config_template: "default_teleport.yaml.j2"
-teleport_service_template: "default_teleport.service.j2"
 teleport_control_systemd: yes
 teleport_template_config: yes
+teleport_service_user: "teleport"
+teleport_system_group: "teleport"
+teleport_service_template: "teleport.service.j2"
 
 # Core Configuration
+teleport_config_dir: "/etc/teleport"
 teleport_cluster_name: ""
 teleport_nodename: "{{ ansible_hostname }}"
 teleport_proxy_server: ""
@@ -36,6 +39,22 @@ teleport_auth_token: ""
 teleport_log_severity: "INFO"
 teleport_diag_addr: ""
 teleport_join_token_ttl: "1h"
+teleport_proxy_tls_dir: "/etc/teleport/tls"
+teleport_proxy_tls_cert: "{{ teleport_proxy_tls_dir }}/teleport.crt"
+teleport_proxy_tls_key: "{{ teleport_proxy_tls_dir }}/teleport.key"
+teleport_proxy_acme_email: "security@example.com"
+teleport_csr_path: "/etc/teleport/tls/teleport.csr"
+teleport_tls_country: "BR"
+teleport_tls_state: "São Paulo"
+teleport_tls_locality: "São Paulo"
+teleport_tls_organization: "Datacosmos"
+teleport_tls_valid_days: 365
+teleport_tls_sans: []
+# Exemplo:
+# teleport_tls_sans:
+#   - "teleport.example.com"
+#   - "cluster.example.com"
+teleport_validate_certs: true
 
 # Services Configuration
 teleport_labels_injetct_realhostname:
