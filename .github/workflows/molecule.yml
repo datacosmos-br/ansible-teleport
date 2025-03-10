@@ -50,7 +50,6 @@ jobs:
           pip install molecule molecule-plugins docker ansible-lint flake8 testinfra ansible
           # Workaround for https://github.com/docker/docker-py/issues/3113
           pip install "urllib3<2"
-          mkdir -p $HOME/.ansible/roles && ln -s $GITHUB_WORKSPACE/$ANSIBLE_ROLE $HOME/.ansible/roles/
       - name: Environment
         run: |
           pwd
@@ -58,11 +57,13 @@ jobs:
           find -ls
       - name: Galaxy dependencies
         run: |
-          cd $GITHUB_WORKSPACE/$ANSIBLE_ROLE && ansible-galaxy install --timeout 120 --verbose -r molecule/default/requirements.yml
+          cd $GITHUB_WORKSPACE/$ANSIBLE_ROLE
+          ansible-galaxy install --timeout 120 --verbose -r molecule/default/requirements.yml --roles-path $HOME/.ansible/roles
         continue-on-error: true
       - name: run test
         run: |
-          cd $GITHUB_WORKSPACE/$ANSIBLE_ROLE && molecule test
+          cd $GITHUB_WORKSPACE/$ANSIBLE_ROLE
+          molecule test
         env:
           PY_COLORS: "1"
           ANSIBLE_FORCE_COLOR: "1"
