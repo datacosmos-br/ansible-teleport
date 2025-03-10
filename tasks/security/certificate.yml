@@ -3,7 +3,7 @@
 
 - name: Ensure teleport_config_dir directory exists
   ansible.builtin.file:
-    path: "{{ teleport_config_dir }}/security"
+    path: "{{ teleport_config_dir }}"
     state: directory
     owner: root
     group: root
@@ -22,7 +22,7 @@
 
 - name: Ensure teleport_proxy_tls_dir directory exists
   ansible.builtin.file:
-    path: "{{ teleport_proxy_tls_dir }}/security"
+    path: "{{ teleport_proxy_tls_dir }}"
     state: directory
     owner: root
     group: root

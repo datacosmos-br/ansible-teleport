@@ -15,10 +15,11 @@
 
     - name: Validate config version
       ansible.builtin.assert:
-        that: legacy_config.version == 'v3'
+        that:
+          - legacy_config.version == 'v3'
         msg: "Unsupported config version: {{ legacy_config.version }}"
 
-    - name: Extract security parameters
+    - name: Extract legacy security parameters
       ansible.builtin.set_fact:
         legacy_auth_token: "{{ legacy_config.teleport.auth_token | default('') }}"
         legacy_ca_pin: "{{ legacy_config.teleport.ca_pin | default('') }}"

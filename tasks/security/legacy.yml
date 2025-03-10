@@ -1,5 +1,5 @@
 ---
-- name: Check for existing config
+- name: Check for existing legacy configuration
   ansible.builtin.stat:
     path: "{{ teleport_config_path }}"
   register: teleport_config_file

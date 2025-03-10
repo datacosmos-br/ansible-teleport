@@ -1,17 +1,35 @@
 ---
-- name: Load existing configuration
+- name: Load existing legacy configuration (if exists)
   ansible.builtin.include_tasks: security/legacy.yml
-  when: teleport_config_file.stat.exists
 
-- name: Migrate authentication tokens
+- name: Migrate authentication tokens (if legacy config present)
   ansible.builtin.set_fact:
-    teleport_auth_token: "{{ old_conf.teleport.auth_token }}"
+    teleport_auth_token: "{{ legacy_auth_token }}"
   when:
-    - old_conf.teleport.auth_token is defined
-    - teleport_auth_token | default('') | length == 0
+    - legacy_auth_token is defined
+    - (teleport_auth_token | default('') | length == 0)
+
+- name: Migrate CA PIN (if legacy config present)
+  ansible.builtin.set_fact:
+    teleport_ca_pin: "{{ legacy_ca_pin }}"
+  when:
+    - legacy_ca_pin is defined
+    - (teleport_ca_pin | default('') | length == 0)
+
+- name: Determine if security credentials changed
+  ansible.builtin.set_fact:
+    security_credentials_changed: >-
+      {{ (legacy_auth_token | default('')) != (teleport_auth_token | default('')) or
+         (legacy_ca_pin | default('')) != (teleport_ca_pin | default('')) }}
+  when: legacy_config is defined
+
+- name: Ensure security_credentials_changed is defined
+  ansible.builtin.set_fact:
+    security_credentials_changed: false
+  when: security_credentials_changed is not defined
 
 - name: Handle security changes
-  when: security_credentials_changed | bool
+  when: (security_credentials_changed | default(false)) | bool
   tags: [security]
   block:
     - name: Get current config checksum
