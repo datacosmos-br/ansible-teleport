@@ -1,0 +1,5 @@
+---
+- src: https://github.com/datacosmos-br/ansible-teleport.git
+  scm: git
+  version: main
+  name: datacosmos-br.teleport

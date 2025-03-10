@@ -1,6 +1,6 @@
 ---
 - name: "Slurp the precedent configuration."
-  become: yes
+  become: true
   ansible.builtin.slurp:
     src: "{{ teleport_config_path }}"
   register: old_conf_raw
@@ -35,7 +35,7 @@
       and teleport_ca_pin | string and teleport_ca_pin != old_conf.teleport.ca_pin
     )
   notify: Reload_Teleport
-  become: yes
+  become: true
   block:
     - name: "Stop teleport service if enabled"
       ansible.builtin.systemd:

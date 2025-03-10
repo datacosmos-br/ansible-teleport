@@ -1,8 +1,8 @@
 # Ansible Role: Teleport Node Service
 
-[![Ansible Galaxy](https://img.shields.io/badge/Ansible%20Galaxy-mdsketch.teleport-blueviolet)](https://galaxy.ansible.com/mdsketch/teleport)
-[![Ansible Lint](https://github.com/mdsketch/ansible-teleport/actions/workflows/lint.yml/badge.svg)](https://github.com/mdsketch/ansible-teleport/actions/workflows/lint.yml)
-[![molecule_tests](https://github.com/mdsketch/ansible-teleport/actions/workflows/molecule.yml/badge.svg)](https://github.com/mdsketch/ansible-teleport/actions/workflows/molecule.yml)
+[![Ansible Galaxy](https://img.shields.io/badge/Ansible%20Galaxy-datacosmos-br.teleport-blueviolet)](https://galaxy.ansible.com/datacosmos-br/teleport)
+[![Ansible Lint](https://github.com/datacosmos-br/ansible-teleport/actions/workflows/lint.yml/badge.svg)](https://github.com/datacosmos-br/ansible-teleport/actions/workflows/lint.yml)
+[![molecule_tests](https://github.com/datacosmos-br/ansible-teleport/actions/workflows/molecule.yml/badge.svg)](https://github.com/datacosmos-br/ansible-teleport/actions/workflows/molecule.yml)
 
 An ansible role to install or update the teleport node service and teleport config using native packages (RPM and DEB).
 
@@ -161,7 +161,7 @@ For example to install teleport using EC2 join method:
 ```yaml
 - hosts: all
   roles:
-    - zen.teleport
+    - datacosmos-br.teleport
 ```
 
 *Inside `group_vars/all.yaml`*
@@ -172,7 +172,7 @@ teleport_auth_servers:
   - https://teleport.company.cc:443
 teleport_ec2_join_token: ec2-teleport-join-token
 teleport_host_labels:
-  owner: zen
+  owner: datacosmos-br
   type: standalone
 ```
 
@@ -181,7 +181,7 @@ For example to install teleport on a node:
 ```
 - hosts: all
   roles:
-    - mdsketch.teleport
+    - datacosmos-br.teleport
   vars:
     # optional ssh labels
     teleport_ssh_labels:
@@ -252,8 +252,8 @@ MIT / BSD
 
 ## Author Information
 
-This role was created in 2021 by Matthew Draws, forked, completely rewritten and adapted for EL based systems and using packages by Tomasz 'Zen' Napierala in 2022.
+This role was created in 2021 by Matthew Draws, forked, completely rewritten and adapted for EL based systems and using packages by Tomasz 'datacosmos-br' Napierala in 2022.
 
 
 ## Maintainers
-- Matthew Draws: [mdsketch](https://github.com/mdsketch)
+- Matthew Draws: [datacosmos-br](https://github.com/datacosmos-br)

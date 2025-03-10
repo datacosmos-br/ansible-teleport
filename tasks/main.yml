@@ -1,8 +1,19 @@
 ---
-- include_tasks: setup-RedHat.yml
+
+- name: Set fact is_container
+  ansible.builtin.set_fact:
+    is_container: true
+  when: >
+    (ansible_virtualization_type is defined and
+      (ansible_virtualization_type == "docker" or ansible_virtualization_type == "containerd")
+    )
+
+- name: Setup pre-requisites on Redhat Systems
+  ansible.builtin.include_tasks: setup-RedHat.yml
   when: ansible_os_family == 'RedHat'
 
-- include_tasks: setup-Debian.yml
+- name: Setup pre-requisites on Debian Systems
+  ansible.builtin.include_tasks: setup-Debian.yml
   when: ansible_os_family == 'Debian'
 
 - name: Install Teleport.
@@ -10,7 +21,8 @@
     name: "{{ teleport_package }}"
     state: "{{ teleport_package_state }}"
 
-- include_tasks: config.yml
+- name: Create Teleport config
+  ansible.builtin.include_tasks: config.yml
   when: teleport_create_config | bool
 
 - name: Ensure Teleport is started and enabled at boot.
@@ -19,9 +31,9 @@
     state: started
     enabled: true
 
-# Old main.yaml 
+# Old main.yaml
 # ---
-# 
+#
 # - name: Set fact is_container
 #   ansible.builtin.set_fact:
 #     is_container: true
@@ -29,25 +41,25 @@
 #     (ansible_virtualization_type is defined and
 #       (ansible_virtualization_type == "docker" or ansible_virtualization_type == "containerd")
 #     )
-# 
+#
 # - name: "Lookup the cloud server version if none was provided"
 #   ansible.builtin.include_tasks: detect_cloud_version.yml
 #   when:
 #     - teleport_autodetect_version
 #     - not teleport_version | string
-# 
+#
 # - name: "Check if a teleport configuration is present"
 #   ansible.builtin.stat:
 #     path: "{{ teleport_config_path }}"
 #   register:  teleport_config_file
-# 
+#
 # - name: "Save the precedent configuration or erase database artifacts"
 #   ansible.builtin.include_tasks: auth_conf.yml
 #   when: teleport_config_file.stat.exists
-# 
+#
 # - name: "Dispatch on installation method"
 #   ansible.builtin.include_tasks: "{{ 'install_via_' + teleport_install_method + '.yml' }}"
-# 
+#
 # - name: Create teleport config
 #   become: yes
 #   ansible.builtin.template:
@@ -59,8 +71,8 @@
 #     backup: "{{ backup_teleport_config }}"
 #   when: teleport_template_config
 #   notify: Reload_Teleport
-# 
+#
 # - name: "Configure systemd service"
 #   ansible.builtin.include_tasks: "systemd.yml"
 #   when: teleport_control_systemd
-# 
+#

@@ -6,9 +6,9 @@
       ansible.builtin.set_fact:
         teleport_major_version: "{{ 'v' + teleport_version | regex_replace('[.].*$', '') }}"
         teleport_pkgs: >-
-          {% if teleport_edition == "oss" %}teleport{%
-             elif teleport_edition == "enterprise" %}teleport-ent{%
-             else %}teleport-ent=v{{ teleport_version }} teleport-ent-updater{% endif %}
+          {%  if teleport_edition == "oss" %}teleport{%
+              elif teleport_edition == "enterprise" %}teleport-ent{%
+              else %}teleport-ent=v{{ teleport_version }} teleport-ent-updater{% endif %}
 
     - name: "Install the pgp keys of info@gravitational.com"
       ansible.builtin.copy:
