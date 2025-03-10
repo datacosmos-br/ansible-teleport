@@ -29,7 +29,7 @@ teleport_service_template: "teleport.service.j2"
 # Core Configuration
 teleport_config_dir: "/etc/teleport"
 teleport_cluster_name: ""
-teleport_nodename: "{{ ansible_hostname }}"
+teleport_nodename: "{{ inventory_hostname }}"
 teleport_proxy_server: ""
 teleport_proxy_port: 443
 teleport_fetch_ca_pin: true
@@ -56,7 +56,7 @@ teleport_validate_certs: true
 teleport_labels_injetct_realhostname:
 teleport_labels:
   - key: "real_hostname"
-    value: "{{ inventory_hostname }}"
+    value: "{{ ansible_hostname }}"
 
 # SSH Service
 teleport_ssh_enabled: true
