@@ -1,29 +1,87 @@
+# defaults/main.yml
 ---
-teleport_nodename: ""
-teleport_autodetect_version: false
-teleport_version: "{{ '15.4.11' if not teleport_autodetect_version }}"
-teleport_architecture: "amd64-bin"
-teleport_channel: "stable/v17"
-teleport_edition: "oss"
+
+
+# Process Management
 teleport_package: teleport
+teleport_package_state: present
+teleport_version: "{{ '15.4.11' if not teleport_autodetect_version }}"
+teleport_edition: "oss"
+teleport_autodetect_version: false
+teleport_architecture: "amd64-bin"
+teleport_url: "https://get.gravitational.com/teleport-v{{ teleport_version }}-linux-{{ teleport_architecture }}.tar.gz"
 teleport_gpg_key_url: "https://rpm.releases.teleport.dev/RPM-GPG-KEY-teleport"
 teleport_yum_baseurl: "https://yum.releases.teleport.dev"
 teleport_repo_file: "/etc/yum.repos.d/teleport.repo"
-teleport_package_state: present
+teleport_channel: "stable/v17"
+teleport_update: no
+teleport_backup_config: true
 teleport_create_config: true
-teleport_auth_token: ""
 teleport_ec2_join_token: ec2-teleport-join-token
-teleport_ca_pin: ""
-# teleport_auth_servers:
-#  - "https://auth.example.com"
-  #- "127.0.0.1:3025"
-teleport_auth_server: ""
-teleport_url: "https://get.gravitational.com/teleport-v{{ teleport_version }}-linux-{{ teleport_architecture }}.tar.gz"
 teleport_config_path: "/etc/teleport.yaml"
 teleport_config_template: "default_teleport.yaml.j2"
 teleport_service_template: "default_teleport.service.j2"
 teleport_control_systemd: yes
 teleport_template_config: yes
-# Default dont change
-update_teleport: no
-teleport_backup_config: true
+
+# Core Configuration
+teleport_cluster_name: ""
+teleport_nodename: "{{ ansible_hostname }}"
+teleport_proxy_server: ""
+teleport_proxy_port: 443
+teleport_fetch_ca_pin: true
+teleport_ca_pin: ""
+teleport_change_ca_pin: false
+teleport_auth_token: ""
+teleport_log_severity: "INFO"
+teleport_diag_addr: ""
+teleport_join_token_ttl: "1h"
+
+# Services Configuration
+teleport_labels_injetct_realhostname:
+teleport_labels:
+  - key: "real_hostname"
+    value: "{{ inventory_hostname }}"
+
+# SSH Service
+teleport_ssh_enabled: true
+teleport_ssh_labels: []
+teleport_ssh_commands: []
+
+# Kubernetes Service
+teleport_kube_enabled: false
+teleport_kube_labels: []
+teleport_kube_clusters: []
+  # ex:
+  # - name: "prod-cluster"
+  #   labels:
+  #     env: "prod"
+  #     region: "us-east1"
+
+# Database Service
+teleport_db_enabled: false
+teleport_db_labels: []
+teleport_db_databases: []
+  # ex:
+  # - name: "postgres-prod"
+  #   protocol: "postgres"
+  #   uri: "db-prod.internal:5432"
+  #   labels:
+  #     tier: "database"
+
+teleport_apps_enabled: false
+teleport_apps_labels: []
+teleport_apps: []
+  # - name: "webapp"
+  #   uri: "http://localhost:8080"
+  #   labels:
+  #     type: "http"
+  #     framework: "django"
+
+# Windows Desktop Service
+teleport_windows_desktop_enabled: false
+teleport_windows_labels: []
+teleport_windows_hosts: []
+  # ex:
+  # - "desktop01.example.com"
+  # - "192.168.1.100"

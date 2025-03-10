@@ -8,4 +8,3 @@
     enabled: yes
   when:
     - teleport_control_systemd
-    - not is_container | bool

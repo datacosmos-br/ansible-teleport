@@ -1,0 +1,86 @@
+# tasks/config/proxy.yml
+---
+- name: Initialize proxy security infrastructure
+  block:
+    - name: Create TLS directory structure
+      ansible.builtin.file:
+        path: "{{ teleport_proxy_tls_dir }}"
+        state: directory
+        mode: "0700"
+      tags: [proxy, security]
+
+    - name: Generate self-signed certificate pair
+      community.crypto.openssl_privatekey:
+        path: "{{ teleport_proxy_tls_key }}"
+        size: 4096
+        mode: "0600"
+      tags: [proxy, security]
+
+    - name: Create CSR configuration
+      ansible.builtin.template:
+        src: tls/openssl.cnf.j2
+        dest: "{{ teleport_proxy_tls_dir }}/openssl.cnf"
+        mode: "0600"
+      tags: [proxy, security]
+
+    - name: Generate certificate signing request
+      community.crypto.openssl_csr:
+        path: "{{ teleport_proxy_tls_dir }}/teleport.csr"
+        privatekey_path: "{{ teleport_proxy_tls_key }}"
+        common_name: "{{ teleport_proxy_server }}"
+        subject_alt_name: >-
+          {%- set sans = ['DNS:' + teleport_proxy_server, 'DNS:localhost', 'IP:127.0.0.1'] -%}
+          {%- if teleport_tls_sans is defined -%}
+            {{ sans + teleport_tls_sans | map('regex_replace', '^(DNS|IP):', '\\1:') }}
+          {%- else -%}
+            {{ sans }}
+          {%- endif -%}
+        country_name: "{{ teleport_tls_country | default('BR') }}"
+        state_or_province_name: "{{ teleport_tls_state | default('Sao Paulo') }}"
+        locality_name: "{{ teleport_tls_locality | default('Sao Paulo') }}"
+        organization_name: "{{ teleport_tls_organization | default('Datacosmos') }}"
+        basic_constraints: "CA:FALSE"
+        key_usage:
+          - nonRepudiation
+          - digitalSignature
+          - keyEncipherment
+        extended_key_usage:
+          - serverAuth
+          - clientAuth
+        key_usage_critical: true
+        extended_key_usage_critical: true
+        subject_alt_name_critical: false
+      tags: [proxy, security]
+
+    - name: Generate self-signed certificate
+      community.crypto.x509_certificate:
+        path: "{{ teleport_proxy_tls_cert }}"
+        csr_path: "{{ teleport_proxy_tls_dir }}/teleport.csr"
+        privatekey_path: "{{ teleport_proxy_tls_key }}"
+        provider: selfsigned
+        mode: "0644"
+      tags: [proxy, security]
+
+- name: Configure ACME certificates
+  when: teleport_proxy_acme_enabled | bool
+  tags: [proxy, security]
+  block:
+    - name: Install required ACME dependencies
+      ansible.builtin.package:
+        name: [certbot, python3-certbot]
+        state: present
+      tags: [proxy, security]
+
+    - name: Request Let's Encrypt certificate
+      ansible.builtin.command:
+        cmd: |
+          certbot certonly --standalone \
+            -d {{ teleport_proxy_server }} \
+            --non-interactive \
+            --agree-tos \
+            -m {{ teleport_proxy_acme_email }} \
+            --keep-until-expiring
+      register: certbot_result
+      changed_when: "'No certificates were processed.' not in certbot_result.stdout"
+      notify: Reload Teleport service
+      tags: [proxy, security]

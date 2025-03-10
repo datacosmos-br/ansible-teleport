@@ -1,46 +1,60 @@
+# tasks/main.yml
 ---
-- name: Set fact is_container
-  ansible.builtin.set_fact:
-    is_container: true
-  when: >
-    (ansible_virtualization_type is defined and
-      (ansible_virtualization_type == "docker" or ansible_virtualization_type == "containerd")
-    )
 
-- name: "Lookup the cloud server version if none was provided"
-  ansible.builtin.include_tasks: detect_cloud_version.yml
-  when:
-    - teleport_autodetect_version
-    - not teleport_version | string
+- name: Validations
+  tags: [validation]
+  block:
+    - name: Validate system prerequisites
+      ansible.builtin.include_tasks: preflight/check.yml
+      tags: [validation, always]
+    - name: Detect Teleport version
+      ansible.builtin.include_tasks: preflight/version.yml
+      tags: [validation, always]
 
-- name: Setup pre-requisites on Redhat Systems
-  ansible.builtin.include_tasks: setup-RedHat.yml
-  when: ansible_os_family == 'RedHat'
+- name: Configure OS environment
+  tags: [setup]
+  block:
+    - name: Install RedHat dependencies
+      ansible.builtin.include_tasks: setup/redhat.yml
+      when: ansible_os_family == 'RedHat'
+    - name: Install Debian dependencies
+      ansible.builtin.include_tasks: setup/debian.yml
+      when: ansible_os_family == 'Debian'
 
-- name: Setup pre-requisites on Debian Systems
-  ansible.builtin.include_tasks: setup-Debian.yml
-  when: ansible_os_family == 'Debian'
+- name: Install Teleport package
+  tags: [install]
+  block:
+    - name: Install using package manager
+      ansible.builtin.include_tasks: install/package.yml
+      when: ansible_os_family in ['RedHat', 'Debian']
+    - name: Install from tarball
+      ansible.builtin.include_tasks: install/tarball.yml
+      when: ansible_os_family not in ['RedHat', 'Debian']
 
-- name: Instalar Teleport via tarball em sistemas não RedHat/Debian
-  ansible.builtin.include_tasks: install_via_tar.yml
-  when: ansible_os_family not in ['RedHat', 'Debian']
+- name: Configure cluster authentication
+  tags: [security]
+  block:
+    - name: Retrieve cluster identity
+      ansible.builtin.include_tasks: security/ca_pin.yml
+    - name: Manage TLS certificates
+      ansible.builtin.include_tasks: security/certificate.yml
+    - name: Handle authentication config
+      ansible.builtin.include_tasks: security/auth.yml
 
-- name: Install Teleport.
-  ansible.builtin.package:
-    name: "{{ teleport_package }}"
-    state: "{{ teleport_package_state }}"
-  when: ansible_os_family in ['RedHat', 'Debian']
+- name: Generate service configuration
+  tags: [configuration]
+  block:
+    - name: Create base configuration
+      ansible.builtin.include_tasks: config/main.yml
+    - name: Configure proxy settings
+      ansible.builtin.include_tasks: config/proxy.yml
+      when: teleport_proxy_enabled | bool
 
-- name: Create Teleport config
-  ansible.builtin.include_tasks: config.yml
-  when: teleport_create_config | bool
-
-- name: "Configure systemd service"
-  ansible.builtin.include_tasks: "systemd.yml"
-  when: teleport_control_systemd
-
-- name: Ensure Teleport is started and enabled at boot.
-  ansible.builtin.service:
-    name: teleport
-    state: started
-    enabled: true
+- name: Manage Teleport service
+  tags: [service]
+  block:
+    - name: Configure service daemon
+      ansible.builtin.include_tasks: service/daemon_management.yml
+    - name: Configure systemd integration
+      ansible.builtin.include_tasks: service/systemd.yml
+      when: teleport_control_systemd | bool

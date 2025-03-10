@@ -1,0 +1,9 @@
+---
+- name: Check for existing config
+  ansible.builtin.stat:
+    path: "{{ teleport_config_path }}"
+  register: teleport_config_file
+
+- name: Load legacy configuration
+  ansible.builtin.include_tasks: security/parse_legacy_config.yml
+  when: teleport_config_file.stat.exists

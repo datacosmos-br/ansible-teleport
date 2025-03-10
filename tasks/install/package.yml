@@ -1,0 +1,18 @@
+# tasks/install/package_installation.yml
+---
+- name: Verify Teleport GPG key
+  ansible.builtin.get_url:
+    url: "{{ teleport_gpg_key_url }}"
+    dest: /etc/pki/rpm-gpg/RPM-GPG-KEY-teleport
+    # checksum: sha256:{{ teleport_gpg_checksum }}
+    mode: "0644"
+  become: true
+  tags: [install]
+
+- name: Install Teleport package
+  ansible.builtin.package:
+    name: "{{ teleport_package }}"
+    state: "{{ teleport_package_state }}"
+    enablerepo: "teleport-{{ teleport_channel | replace('/', '-') }}"
+  become: true
+  tags: [install]

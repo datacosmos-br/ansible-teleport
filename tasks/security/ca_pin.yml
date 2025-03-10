@@ -1,0 +1,20 @@
+---
+- name: Retrieve cluster CA PIN from proxy
+  ansible.builtin.uri:
+    url: "https://{{ teleport_proxy_server }}:443/webapi/auth/export"
+    validate_certs: "{{ teleport_validate_certs | default(true) }}"
+    return_content: true
+    status_code: 200
+  register: ca_pin_response
+  when:
+    - teleport_fetch_ca_pin | bool
+    - teleport_ca_pin | length == 0
+  tags: [security]
+
+- name: Validate and set CA PIN
+  ansible.builtin.set_fact:
+    teleport_ca_pin: "{{ ca_pin_response.json.ca_pin }}"
+  when:
+    - ca_pin_response is defined
+    - ca_pin_response.json.ca_pin | regex_search('^sha256:')
+  tags: [security]

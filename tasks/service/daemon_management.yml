@@ -1,0 +1,28 @@
+# tasks/service/daemon_management.yml
+---
+- name: Configure legacy init systems
+  tags: [service, legacy]
+  ignore_errors: "{{ ansible_check_mode }}"
+  block:
+    - name: Create init script directory
+      ansible.builtin.file:
+        path: /etc/init.d
+        state: directory
+        mode: "0755"
+      when: not is_container | bool
+
+    - name: Install SysV init script
+      ansible.builtin.template:
+        src: teleport.init.j2
+        dest: /etc/init.d/teleport
+        mode: "0755"
+      notify: Restart Teleport service
+      when: not is_container | bool
+
+    - name: Ensure service persistence
+      ansible.builtin.service:
+        name: teleport
+        enabled: true
+      when:
+        - not is_container | bool
+        - ansible_os_family in ['RedHat', 'Debian', 'SUSE']

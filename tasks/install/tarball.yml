@@ -1,0 +1,32 @@
+# tasks/install/tarball.yml
+---
+- name: Download Teleport tarball
+  ansible.builtin.get_url:
+    url: "{{ teleport_url }}"
+    dest: "/tmp/teleport-{{ teleport_version }}.tar.gz"
+    mode: "0644"
+  tags: [install]
+
+- name: Extract Teleport binaries
+  ansible.builtin.unarchive:
+    src: "/tmp/teleport-{{ teleport_version }}.tar.gz"
+    dest: "/opt/teleport/"
+    remote_src: true
+    extra_opts: [--strip-components=1]
+    creates: "/opt/teleport/install"
+  become: true
+  tags: [install]
+
+- name: Install Teleport systemwide
+  ansible.builtin.command: "./install"
+  args:
+    chdir: "/opt/teleport"
+  creates: "/usr/local/bin/teleport"
+  become: true
+  tags: [install]
+
+- name: Cleanup temporary files
+  ansible.builtin.file:
+    path: "/tmp/teleport-{{ teleport_version }}.tar.gz"
+    state: absent
+  tags: [install]

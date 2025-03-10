@@ -1,0 +1,27 @@
+# tasks/preflight/version_detection.yml
+---
+- name: Get latest Teleport version from API
+  ansible.builtin.uri:
+    url: "https://{{ teleport_proxy_server | default(teleport_auth_server) }}/v1/webapi/automaticupgrades/channel/{{ teleport_channel }}/version"
+    return_content: true
+    status_code: 200
+    validate_certs: "{{ teleport_validate_certs | default(true) }}"
+  register: teleport_version_lookup
+  when: teleport_autodetect_version | bool
+  tags: [validation, always]
+
+- name: Set detected Teleport version
+  ansible.builtin.set_fact:
+    teleport_version: "{{ teleport_version_lookup.content | regex_replace('^v', '') }}"
+  when:
+    - teleport_autodetect_version | bool
+    - teleport_version_lookup.content | match('^v?\\d+\\.\\d+\\.\\d+')
+  tags: [validation, always]
+
+- name: Validate version format
+  ansible.builtin.assert:
+    that:
+      - teleport_version is version_compare('14.0.0', '>=')
+      - teleport_version | match('^\\d+\\.\\d+\\.\\d+$')
+    msg: "Invalid Teleport version: {{ teleport_version }}"
+  tags: [validation, always]

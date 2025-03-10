@@ -1,0 +1,21 @@
+# tasks/preflight/check_requirements.yml
+---
+- name: Validate mandatory configuration
+  ansible.builtin.assert:
+    that:
+      - teleport_proxy_server | length > 0
+      - teleport_cluster_name | length > 0
+    msg: "Proxy server and cluster name must be defined!"
+  tags: [validation, always]
+
+- name: Detect container environment
+  ansible.builtin.set_fact:
+    is_container: "{{ ansible_virtualization_type in ['docker', 'containerd'] }}"
+  tags: [validation, always]
+
+- name: Verify OS compatibility
+  ansible.builtin.assert:
+    that:
+      - ansible_os_family in ['RedHat','Debian','Alpine']
+    msg: "Unsupported OS family: {{ ansible_os_family }}"
+  tags: [validation, always]
