@@ -8,13 +8,26 @@
   register: ca_pin_response
   when:
     - teleport_fetch_ca_pin | bool
-    - teleport_ca_pin | length == 0
+    - (teleport_ca_pin | default('')) | length == 0
   tags: [security]
 
-- name: Validate and set CA PIN
+- name: Extract CA PIN from response content
   ansible.builtin.set_fact:
-    teleport_ca_pin: "{{ (ca_pin_response.content | regex_search('^sha256:[^\n]+', multiline=True)) }}"
+    ca_pin_extracted: "{{ ca_pin_response.content | regex_search('(^sha256:[a-f0-9]{64}$)', multiline=True) }}"
+  when: ca_pin_response is defined
+  tags: [security]
+
+- name: Set CA PIN fact if extracted value is valid
+  ansible.builtin.set_fact:
+    teleport_ca_pin: "{{ ca_pin_extracted }}"
   when:
-    - ca_pin_response is defined
-    - (ca_pin_response.content | regex_search('^sha256:[^\n]+', multiline=True)) is not none
+    - ca_pin_extracted is defined
+    - (ca_pin_extracted | length) > 0
+  tags: [security]
+
+- name: Assert final CA PIN format
+  ansible.builtin.assert:
+    that:
+      - (teleport_ca_pin | default('') | regex_search('^sha256:[a-f0-9]{64}$')) is not none
+    msg: "Invalid CA PIN format: {{ teleport_ca_pin }}"
   tags: [security]

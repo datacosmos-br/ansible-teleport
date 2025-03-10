@@ -1,9 +1,8 @@
-# tasks/config/main.yml
 ---
-- name: Validate and enforce CA PIN security
+- name: Ensure configuration directories exist
+  tags: [configuration, security]
   block:
-
-    - name: Ensure teleport_config_dir directory exists
+    - name: Ensure teleport_config_dir exists
       ansible.builtin.file:
         path: "{{ teleport_config_dir }}"
         state: directory
@@ -19,15 +18,17 @@
         state: directory
         owner: root
         group: root
-        mode: "0700"
+        mode: '0700'
       tags: [configuration, security]
 
-    - name: Retrieve or validate CA PIN
+- name: Enforce CA PIN consistency in configuration
+  block:
+    - name: Retrieve or update CA PIN from proxy
       ansible.builtin.include_tasks: security/ca_pin.yml
       when: teleport_fetch_ca_pin | bool
       tags: [configuration, security]
 
-    - name: Enforce CA PIN consistency
+    - name: Write CA PIN to configuration file
       ansible.builtin.copy:
         content: "{{ teleport_ca_pin }}"
         dest: "{{ teleport_config_dir }}/security/ca_pin"
@@ -35,36 +36,9 @@
         force: false
       tags: [configuration, security]
 
-  always:
     - name: Validate final CA PIN format
       ansible.builtin.assert:
-        that: teleport_ca_pin | regex_match('^sha256:[a-f0-9]{64}$')
-        msg: "Invalid CA PIN format"
+        that:
+          - (teleport_ca_pin | default('') | regex_search('^sha256:[a-f0-9]{64}$')) is not none
+        msg: "Invalid CA PIN format: {{ teleport_ca_pin }}"
       tags: [configuration, security]
-
-- name: Manage Teleport configuration lifecycle
-  block:
-    - name: Backup existing configuration
-      ansible.builtin.copy:
-        src: "{{ teleport_config_path }}"
-        dest: "{{ teleport_config_path }}.bak"
-        remote_src: true
-        mode: "0600"
-      when: teleport_backup_config | bool
-      tags: [configuration]
-
-    - name: Apply new configuration template
-      ansible.builtin.template:
-        src: "{{ teleport_config_template }}"
-        dest: "{{ teleport_config_path }}"
-        owner: "root"
-        group: "root"
-        mode: "0600"
-        validate: "teleport validate --config %s"
-      tags: [configuration]
-
-- name: Verify configuration syntax
-  ansible.builtin.command:
-    cmd: "teleport validate --config {{ teleport_config_path }}"
-  changed_when: false
-  tags: [configuration, validation]
