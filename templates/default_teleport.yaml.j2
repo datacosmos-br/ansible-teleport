@@ -18,214 +18,209 @@ auth_service:
 # SSH Service
 ssh_service:
   enabled: {{ teleport_ssh_enabled | default(true) | bool | ternary('yes', 'no') }}
-  {% if teleport_ssh_labels or teleport_labels %}
+{% if teleport_ssh_labels or teleport_labels %}
   labels:
-    {% if teleport_labels %}
-      {# Global labels #}
-      {% for label in teleport_labels %}
-        {% if label.key is defined %}
-          {{ label.key }}: "{{ label.value }}"
-        {% else %}
-          {% for key, value in label.items() %}
-            {{ key }}: "{{ value }}"
-          {% endfor %}
-        {% endif %}
-      {% endfor %}
-    {% endif %}
-    {% if teleport_ssh_labels %}
-      {# Service-specific labels #}
-      {% for label in teleport_ssh_labels %}
-        {% if label.key is defined %}
-          {{ label.key }}: "{{ label.value }}"
-        {% else %}
-          {% for key, value in label.items() %}
-            {{ key }}: "{{ value }}"
-          {% endfor %}
-        {% endif %}
-      {% endfor %}
-    {% endif %}
-  {% endif %}
-  {% if teleport_ssh_commands %}
+{% for label in teleport_labels | default([]) %}
+{% if label.key is defined %}
+    {{ label.key }}: "{{ label.value }}"
+{% else %}
+{% for key, value in label.items() %}
+    {{ key }}: "{{ value }}"
+{% endfor %}
+{% endif %}
+{% endfor %}
+{% for label in teleport_ssh_labels | default([]) %}
+{% if label.key is defined %}
+    {{ label.key }}: "{{ label.value }}"
+{% else %}
+{% for key, value in label.items() %}
+    {{ key }}: "{{ value }}"
+{% endfor %}
+{% endif %}
+{% endfor %}
+{% endif %}
+
+{% if teleport_ssh_commands %}
   commands: {{ teleport_ssh_commands | to_json }}
-  {% endif %}
+{% endif %}
 
 # Proxy Service
 proxy_service:
   enabled: {{ teleport_proxy_enabled | default(false) | bool | ternary('yes', 'no') }}
-  public_addr: "{{ teleport_proxy_public_addr | default(teleport_proxy_server + ':' + teleport_proxy_port|string) }}"
+  public_addr: "{{ teleport_proxy_public_addr | default(teleport_proxy_server ~ ':' ~ teleport_proxy_port) }}"
   listen_addr: "{{ teleport_proxy_listen_addr | default('0.0.0.0:443') }}"
   tunnel_listen_addr: "{{ teleport_proxy_tunnel_listen_addr | default('0.0.0.0:3024') }}"
   web_listen_addr: "{{ teleport_proxy_web_listen_addr | default('0.0.0.0:3080') }}"
-  {% if teleport_proxy_labels %}
+{% if teleport_proxy_labels %}
   labels:
-    {% for label in teleport_proxy_labels %}
-      {% if label.key is defined %}
-        {{ label.key }}: "{{ label.value }}"
-      {% else %}
-        {% for key, value in label.items() %}
-          {{ key }}: "{{ value }}"
-        {% endfor %}
-      {% endif %}
-    {% endfor %}
-  {% endif %}
-  {% if teleport_proxy_tls_enabled | default(true) %}
+{% for label in teleport_proxy_labels %}
+{% if label.key is defined %}
+    {{ label.key }}: "{{ label.value }}"
+{% else %}
+{% for key, value in label.items() %}
+    {{ key }}: "{{ value }}"
+{% endfor %}
+{% endif %}
+{% endfor %}
+{% endif %}
+{% if teleport_proxy_tls_enabled | default(true) %}
   https_keypairs:
     - cert_file: "{{ teleport_proxy_tls_cert | default('/etc/teleport/cert.pem') }}"
       key_file: "{{ teleport_proxy_tls_key | default('/etc/teleport/key.pem') }}"
-  {% endif %}
-  {% if teleport_proxy_acme_enabled | default(false) %}
+{% endif %}
+{% if teleport_proxy_acme_enabled | default(false) %}
   acme:
     enabled: true
     email: "{{ teleport_proxy_acme_email }}"
-  {% endif %}
-
-# Kubernetes Service
-{% if teleport_kube_enabled | default(false) %}
-kubernetes_service:
-  enabled: yes
-  {% if teleport_kube_labels or teleport_labels %}
-  labels:
-    {% if teleport_labels %}
-      {% for label in teleport_labels %}
-        {% if label.key is defined %}
-          {{ label.key }}: "{{ label.value }}"
-        {% else %}
-          {% for key, value in label.items() %}
-            {{ key }}: "{{ value }}"
-          {% endfor %}
-        {% endif %}
-      {% endfor %}
-    {% endif %}
-    {% if teleport_kube_labels %}
-      {% for label in teleport_kube_labels %}
-        {% if label.key is defined %}
-          {{ label.key }}: "{{ label.value }}"
-        {% else %}
-          {% for key, value in label.items() %}
-            {{ key }}: "{{ value }}"
-          {% endfor %}
-        {% endif %}
-      {% endfor %}
-    {% endif %}
-  {% endif %}
-  resources:
-    {% for cluster in teleport_kube_clusters %}
-    - kind: kube_cluster
-      name: "{{ cluster.name }}"
-      {% if cluster.labels %}
-      labels:
-        {% for key, value in cluster.labels.items() %}
-          {{ key }}: "{{ value }}"
-        {% endfor %}
-      {% endif %}
-    {% endfor %}
 {% endif %}
 
-# Database Service
+{% if teleport_kube_enabled | default(false) %}
+# Kubernetes Service
+kubernetes_service:
+  enabled: yes
+{% if teleport_kube_labels or teleport_labels %}
+  labels:
+{% if teleport_labels %}
+{% for label in teleport_labels %}
+{% if label.key is defined %}
+    {{ label.key }}: "{{ label.value }}"
+{% else %}
+{% for key, value in label.items() %}
+    {{ key }}: "{{ value }}"
+{% endfor %}
+{% endif %}
+{% endfor %}
+{% endif %}
+{% if teleport_kube_labels %}
+{% for label in teleport_kube_labels %}
+{% if label.key is defined %}
+    {{ label.key }}: "{{ label.value }}"
+{% else %}
+{% for key, value in label.items() %}
+    {{ key }}: "{{ value }}"
+{% endfor %}
+{% endif %}
+{% endfor %}
+{% endif %}
+{% endif %}
+  resources:
+{% for cluster in teleport_kube_clusters %}
+    - kind: kube_cluster
+      name: "{{ cluster.name }}"
+{% if cluster.labels %}
+      labels:
+{% for key, value in cluster.labels.items() %}
+        {{ key }}: "{{ value }}"
+{% endfor %}
+{% endif %}
+{% endfor %}
+{% endif %}
+
 {% if teleport_db_enabled | default(false) %}
+# Database Service
 db_service:
   enabled: yes
-  {% if teleport_db_labels or teleport_labels %}
+{% if teleport_db_labels or teleport_labels %}
   labels:
-    {% if teleport_labels %}
-      {% for label in teleport_labels %}
-        {% if label.key is defined %}
-          {{ label.key }}: "{{ label.value }}"
-        {% else %}
-          {% for key, value in label.items() %}
-            {{ key }}: "{{ value }}"
-          {% endfor %}
-        {% endif %}
-      {% endfor %}
-    {% endif %}
-    {% if teleport_db_labels %}
-      {% for label in teleport_db_labels %}
-        {% if label.key is defined %}
-          {{ label.key }}: "{{ label.value }}"
-        {% else %}
-          {% for key, value in label.items() %}
-            {{ key }}: "{{ value }}"
-          {% endfor %}
-        {% endif %}
-      {% endfor %}
-    {% endif %}
-  {% endif %}
+{% if teleport_labels %}
+{% for label in teleport_labels %}
+{% if label.key is defined %}
+    {{ label.key }}: "{{ label.value }}"
+{% else %}
+{% for key, value in label.items() %}
+    {{ key }}: "{{ value }}"
+{% endfor %}
+{% endif %}
+{% endfor %}
+{% endif %}
+{% if teleport_db_labels %}
+{% for label in teleport_db_labels %}
+{% if label.key is defined %}
+    {{ label.key }}: "{{ label.value }}"
+{% else %}
+{% for key, value in label.items() %}
+    {{ key }}: "{{ value }}"
+{% endfor %}
+{% endif %}
+{% endfor %}
+{% endif %}
+{% endif %}
   resources:
-    {% for db in teleport_db_databases %}
+{% for db in teleport_db_databases %}
     - name: "{{ db.name }}"
       protocol: "{{ db.protocol }}"
       uri: "{{ db.uri }}"
-      {% if db.labels %}
+{% if db.labels %}
       labels:
-        {% for key, value in db.labels.items() %}
-          {{ key }}: "{{ value }}"
-        {% endfor %}
-      {% endif %}
-    {% endfor %}
+{% for key, value in db.labels.items() %}
+        {{ key }}: "{{ value }}"
+{% endfor %}
+{% endif %}
+{% endfor %}
 {% endif %}
 
-# Application Service Configuration
 {% if teleport_apps_enabled %}
+# Application Service Configuration
 app_service:
   enabled: yes
-  {% if teleport_labels or teleport_apps_labels %}
+{% if teleport_labels or teleport_apps_labels %}
   labels:
-    {% for label in teleport_labels %}
-      {% if label.key is defined %}
-        {{ label.key }}: "{{ label.value }}"
-      {% else %}
-        {% for key, value in label.items() %}
-          {{ key }}: "{{ value }}"
-        {% endfor %}
-      {% endif %}
-    {% endfor %}
-    {% for label in teleport_apps_labels %}
-      {% if label.key is defined %}
-        {{ label.key }}: "{{ label.value }}"
-      {% else %}
-        {% for key, value in label.items() %}
-          {{ key }}: "{{ value }}"
-        {% endfor %}
-      {% endif %}
-    {% endfor %}
-  {% endif %}
+{% for label in teleport_labels %}
+{% if label.key is defined %}
+    {{ label.key }}: "{{ label.value }}"
+{% else %}
+{% for key, value in label.items() %}
+    {{ key }}: "{{ value }}"
+{% endfor %}
+{% endif %}
+{% endfor %}
+{% for label in teleport_apps_labels %}
+{% if label.key is defined %}
+    {{ label.key }}: "{{ label.value }}"
+{% else %}
+{% for key, value in label.items() %}
+    {{ key }}: "{{ value }}"
+{% endfor %}
+{% endif %}
+{% endfor %}
+{% endif %}
   resources:
-    {% for app in teleport_apps %}
+{% for app in teleport_apps %}
     - name: "{{ app.name }}"
       uri: "{{ app.uri }}"
-      {% if app.labels %}
+{% if app.labels %}
       labels:
-        {% for key, value in app.labels.items() %}
-          {{ key }}: "{{ value }}"
-        {% endfor %}
-      {% endif %}
-    {% endfor %}
+{% for key, value in app.labels.items() %}
+        {{ key }}: "{{ value }}"
+{% endfor %}
+{% endif %}
+{% endfor %}
 {% endif %}
 
-# Windows Desktop Service
 {% if teleport_windows_desktop_enabled %}
+# Windows Desktop Service
 windows_desktop_service:
   enabled: yes
   hosts: {{ teleport_windows_hosts | to_json }}
-  {% if teleport_labels or teleport_windows_labels %}
+{% if teleport_labels or teleport_windows_labels %}
   labels:
-    {% for label in teleport_labels %}
-      {% if label.key is defined %}
-        {{ label.key }}: "{{ label.value }}"
-      {% else %}
-        {% for key, value in label.items() %}
-          {{ key }}: "{{ value }}"
-        {% endfor %}
-      {% endif %}
-    {% endfor %}
-    {% for label in teleport_windows_labels %}
-      {% if label.key is defined %}
-        {{ label.key }}: "{{ label.value }}"
-      {% else %}
-        {% for key, value in label.items() %}
-          {{ key }}: "{{ value }}"
-        {% endfor %}
-      {% endif %}
-    {% endfor %}
-  {% endif %}
+{% for label in teleport_labels %}
+{% if label.key is defined %}
+    {{ label.key }}: "{{ label.value }}"
+{% else %}
+{% for key, value in label.items() %}
+    {{ key }}: "{{ value }}"
+{% endfor %}
+{% endif %}
+{% endfor %}
+{% for label in teleport_windows_labels %}
+{% if label.key is defined %}
+    {{ label.key }}: "{{ label.value }}"
+{% else %}
+{% for key, value in label.items() %}
+    {{ key }}: "{{ value }}"
+{% endfor %}
+{% endif %}
+{% endfor %}
+{% endif %}
 {% endif %}
