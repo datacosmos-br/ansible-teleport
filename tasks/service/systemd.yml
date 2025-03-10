@@ -1,30 +1,38 @@
-# tasks/service/daemon_management.yml
+# tasks/service/systemd.yml
 ---
-- name: Configure legacy init systems
-  tags: [service, legacy]
-  ignore_errors: "{{ ansible_check_mode }}"
-  block:
-    - name: Create init script directory
-      ansible.builtin.file:
-        path: /etc/init.d
-        state: directory
-        mode: "0755"
-      when: not is_container | bool
+- name: Validate systemd availability
+  ansible.builtin.command:
+    cmd: systemctl --version
+  changed_when: false
+  register: systemd_check
+  ignore_errors: true
 
-    - name: Install SysV init script
-      ansible.builtin.template:
-        src: teleport.init.j2
-        dest: /etc/init.d/teleport
-        mode: "0755"
-      notify: Restart Teleport service
-      when: not is_container | bool
+- name: Create systemd service unit
+  ansible.builtin.template:
+    src: "{{ teleport_service_template }}"
+    dest: "/etc/systemd/system/teleport.service"
+    mode: "0640"
+  notify:
+    - Reload systemd daemon
+    - Restart Teleport service
+  when:
+    - systemd_check is defined
+    - systemd_check.rc == 0
+    - not (is_container | bool)
+  tags: [service, systemd]
 
-    - name: Ensure service persistence
-      ansible.builtin.service:
-        name: teleport
-        enabled: true
-        use: service
-      changed_when: false
-      when:
-        - not is_container | bool
-        - ansible_distribution == 'RedHat'
+- name: Set service permissions
+  ansible.builtin.file:
+    path: /etc/systemd/system/teleport.service
+    owner: root
+    group: root
+    mode: "0640"
+  tags: [service, systemd]
+
+- name: Ensure service enabled
+  ansible.builtin.systemd:
+    name: teleport
+    enabled: true
+    daemon_reload: true
+    state: started
+  tags: [service, systemd]

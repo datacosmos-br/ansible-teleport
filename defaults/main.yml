@@ -39,10 +39,6 @@ teleport_auth_token: ""
 teleport_log_severity: "INFO"
 teleport_diag_addr: ""
 teleport_join_token_ttl: "1h"
-teleport_proxy_tls_dir: "/etc/teleport/tls"
-teleport_proxy_tls_cert: "{{ teleport_proxy_tls_dir }}/teleport.crt"
-teleport_proxy_tls_key: "{{ teleport_proxy_tls_dir }}/teleport.key"
-teleport_proxy_acme_email: "security@example.com"
 teleport_csr_path: "/etc/teleport/tls/teleport.csr"
 teleport_tls_country: "BR"
 teleport_tls_state: "São Paulo"
@@ -66,6 +62,14 @@ teleport_labels:
 teleport_ssh_enabled: true
 teleport_ssh_labels: []
 teleport_ssh_commands: []
+
+# Proxy Service
+teleport_proxy_enabled: false
+teleport_proxy_labels: []
+teleport_proxy_tls_dir: "/etc/teleport/tls"
+teleport_proxy_tls_cert: "{{ teleport_proxy_tls_dir }}/teleport.crt"
+teleport_proxy_tls_key: "{{ teleport_proxy_tls_dir }}/teleport.key"
+teleport_proxy_acme_email: "security@example.com"
 
 # Kubernetes Service
 teleport_kube_enabled: false
