@@ -6,4 +6,4 @@ pre-commit:
 	pre-commit run --all-files
 
 install-from-git:
-	ansible-galaxy install git+https://github.com/datacosmos-br/ansible-teleport.git
+	ansible-galaxy install --force -r requirements.yml
