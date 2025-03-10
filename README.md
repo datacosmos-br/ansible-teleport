@@ -4,7 +4,7 @@
 [![Ansible Lint](https://github.com/mdsketch/ansible-teleport/actions/workflows/lint.yml/badge.svg)](https://github.com/mdsketch/ansible-teleport/actions/workflows/lint.yml)
 [![molecule_tests](https://github.com/mdsketch/ansible-teleport/actions/workflows/molecule.yml/badge.svg)](https://github.com/mdsketch/ansible-teleport/actions/workflows/molecule.yml)
 
-An ansible role to install or update the teleport node service and teleport config on Linux based systems.
+An ansible role to install or update the teleport node service and teleport config using native packages (RPM and DEB).
 
 Works with any architecture that teleport has a binary for, see available [teleport downloads](https://goteleport.com/teleport/download/).
 
@@ -23,13 +23,17 @@ A running teleport cluster so that you can provide the following information:
 
 - auth token (dynamic or static). Ex: `tctl nodes add --ttl=5m --roles=node | grep "invite token:" | grep -Eo "[0-9a-z]{32}"`
 - CA pin
-- address of the authentication or proxy server
+- EC2 join token (see: [documentation](https://goteleport.com/docs/setup/guides/joining-nodes-aws/))
+- address of the authentication server
 
 ## Role Variables
 
 These are the default variables with their default values as defined in `defaults/main.yml`
 
+```sh
+teleport_config_template: "default_teleport.yaml.j2"
 ```
+
 teleport_nodename: ""
 ```
 The nodename to apply in the configuration.  Keep it as an empty string to let teleport use the hostname of the machine.
@@ -74,7 +78,7 @@ teleport_config_template
 ```
 The template to use for the teleport configuration file. The default is `templates/default_teleport.yaml.j2`. It contains a basic configuration that will enable the SSH service and add a command label showing node uptime.
 
-There are many [options available](https://goteleport.com/docs/setup/reference/config/) and you can substitute in your own template and add any variables you want.
+There are many [options available](https://goteleport.com/docs/setup/reference/config/) and you can substitute in your own template and add any variables you want. We also ship template `templates/ec2_teleport.yaml.j2` using automatic node join with [ec2 tokens](https://goteleport.com/docs/setup/guides/joining-nodes-aws/).
 
 ```
 teleport_ssh_labels
@@ -91,8 +95,8 @@ teleport_ca_pin
 ```
 The CA pin to use for the teleport configuration. This is optional, but [recommended](https://goteleport.com/docs/setup/admin/adding-nodes/#untrusted-auth-servers).
 
-```
-teleport_auth_server
+```sh
+teleport_auth_servers
 ```
 The authentication server to use for the teleport configuration. Examples are shown as defaults above.
 
@@ -100,6 +104,11 @@ The authentication server to use for the teleport configuration. Examples are sh
 teleport_proxy_server
 ```
 The proxy server to user for the teleport configuration. Examples are shown as defaults above.
+
+```sh
+teleport_config_path: "/etc/teleport.yaml"
+The path to the teleport configuration file.
+
 
 ```
 backup_teleport_config
@@ -111,10 +120,19 @@ teleport_control_systemd
 ```
 Default `yes`. Controls if this role modifies the teleport service.
 
+
+The list of authentication servers to use for the teleport configuration. Examples are shown as defaults above.
+
+```sh
+teleport_backup_config: true
+```
+
 ```
 teleport_template_config
 ```
 Default `yes`. Controls if this role modifies the teleport config file.
+
+Runs a backup of the teleport configuration file before overwriting it.
 
 ## Upgrading Teleport
 
@@ -135,6 +153,28 @@ This role reloads `teleport.service` after any of the following occur:
 ## Dependencies
 
 None
+
+## Example Playbook
+
+For example to install teleport using EC2 join method:
+
+```yaml
+- hosts: all
+  roles:
+    - zen.teleport
+```
+
+*Inside `group_vars/all.yaml`*
+
+```yaml
+teleport_config_template: ec2_teleport.yaml.j2
+teleport_auth_servers:
+  - https://teleport.company.cc:443
+teleport_ec2_join_token: ec2-teleport-join-token
+teleport_host_labels:
+  owner: zen
+  type: standalone
+```
 
 ## Example Playbook
 For example to install teleport on a node:
@@ -164,6 +204,7 @@ For example to install teleport on a node:
     teleport_ca_pin: "not as secret ca pin"
     teleport_auth_server: "auth server"
 ```
+
 
 *Created Teleport Config to `/etc/teleport.yaml`*
 
@@ -207,12 +248,12 @@ auth_service:
 ```
 
 ## License
-
 MIT / BSD
 
 ## Author Information
 
-This role was created in 2021 by Matthew Draws for [KPM Power](https://github.com/kpmteam/ansible-teleport)
+This role was created in 2021 by Matthew Draws, forked, completely rewritten and adapted for EL based systems and using packages by Tomasz 'Zen' Napierala in 2022.
+
 
 ## Maintainers
 - Matthew Draws: [mdsketch](https://github.com/mdsketch)

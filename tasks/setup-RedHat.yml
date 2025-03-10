@@ -1,0 +1,14 @@
+---
+- name: Add Teleport GPG key.
+  ansible.builtin.rpm_key:
+    key: https://rpm.releases.teleport.dev/RPM-GPG-KEY-teleport
+    state: present
+
+- name: Add Teleport repository.
+  ansible.builtin.yum_repository:
+    name: teleport
+    description: Gravitational Teleport packages
+    baseurl: https://rpm.releases.teleport.dev/
+    enabled: true
+    gpgcheck: true
+    gpgkey: https://rpm.releases.teleport.dev/RPM-GPG-KEY-teleport

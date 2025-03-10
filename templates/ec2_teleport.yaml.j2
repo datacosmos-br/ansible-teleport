@@ -1,0 +1,54 @@
+#jinja2:lstrip_blocks: True
+# Managed by Ansible
+# teleport configuration for EC2 instances
+# using EC2 join method:
+# /etc/teleport.yaml
+teleport:
+  join_params:
+    token_name: {{ teleport_ec2_join_token }}
+    method: ec2
+  auth_servers:
+{% for auth_server in teleport_auth_servers %}
+    - {{ auth_server }}
+{% endfor %}
+ssh_service:
+  enabled: yes
+{% if teleport_host_labels is defined and teleport_host_labels|length %}
+  labels:
+  {% for label, value in teleport_host_labels.items() %}
+    {% if value|length %}
+    {{ label }}: {{ value }}
+    {% endif %}
+  {% endfor %}
+{% else %}
+{% endif %}
+
+  commands:
+    - name: aws_instance_type
+      command:
+        [
+          "/bin/sh",
+          "-c",
+          "curl -s http://169.254.169.254/latest/dynamic/instance-identity/document | jq -r .instanceType",
+        ]
+      period: 24h0m0s
+    - name: aws_hostname_int
+      command:
+        [
+          "/bin/sh",
+          "-c",
+          "curl -s http://169.254.169.254/latest/meta-data/hostname",
+        ]
+      period: 24h0m0s
+    - name: aws_hostname_pub
+      command:
+        [
+          "/bin/sh",
+          "-c",
+          "curl -s http://169.254.169.254/latest/meta-data/public-hostname",
+        ]
+      period: 24h0m0s
+auth_service:
+  enabled: no
+proxy_service:
+  enabled: no

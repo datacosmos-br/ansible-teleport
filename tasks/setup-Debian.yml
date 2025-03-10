@@ -1,0 +1,19 @@
+---
+- name: Ensure required dependencies are present.
+  ansible.builtin.apt:
+    name:
+      - apt-transport-https
+      - gnupg2
+    state: present
+
+- name: Add Teleport apt key.
+  ansible.builtin.apt_key:
+    url: https://deb.releases.teleport.dev/teleport-pubkey.asc
+    id: 0C5E8BA5658E320D1B031179C87ED53A6282C411
+    state: present
+
+- name: Add Teleport repository.
+  ansible.builtin.apt_repository:
+    repo: 'deb https://deb.releases.teleport.dev/ stable main'
+    state: present
+    update_cache: true
