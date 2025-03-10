@@ -30,6 +30,46 @@
       notify: Reload teleport service
       tags: [configuration]
 
+- name: Determine if security credentials changed
+  ansible.builtin.set_fact:
+    security_credentials_changed: >-
+      {{ (legacy_auth_token | default('')) != (teleport_auth_token | default('')) or
+         (legacy_ca_pin | default('')) != (teleport_ca_pin | default('')) }}
+  when: legacy_config is defined
+
+- name: Ensure security_credentials_changed is defined
+  ansible.builtin.set_fact:
+    security_credentials_changed: false
+  when: security_credentials_changed is not defined
+
+- name: Handle security changes
+  when: (security_credentials_changed | default(false)) | bool
+  tags: [security]
+  block:
+    - name: Get current config checksum
+      ansible.builtin.stat:
+        path: "{{ teleport_config_path }}"
+      register: config_check
+      changed_when: false
+      when: not is_container | bool
+
+    - name: Generate new configuration
+      ansible.builtin.command: teleport configure --config={{ teleport_config_path }}
+      register: config_generate
+      changed_when: config_check.stat.checksum != (teleport_config_path | checksum)
+      notify:
+        - Restart Teleport service
+        - Log configuration change
+      when: not is_container | bool
+
+    - name: Flush ephemeral data
+      ansible.builtin.file:
+        path: "/var/lib/teleport/proc/"
+        state: absent
+      changed_when: flush_ephemeral_data.files_deleted > 0
+      register: flush_ephemeral_data
+
+
   # rescue:
   #   - name: Handle configuration errors
   #     ansible.builtin.fail:

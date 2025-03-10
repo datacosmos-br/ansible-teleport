@@ -5,6 +5,7 @@ teleport:
   nodename: "{{ teleport_nodename }}"
   proxy_server: "{{ teleport_proxy_server }}:{{ teleport_proxy_port }}"
   ca_pin: "{{ teleport_ca_pin }}"
+  auth_token: "{{ teleport_auth_token }}"
   log:
     output: stderr
     severity: {{ teleport_log_severity | default('INFO') }}
