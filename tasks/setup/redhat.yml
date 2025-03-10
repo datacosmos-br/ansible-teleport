@@ -3,6 +3,7 @@
 - name: Determine repository parameters
   ansible.builtin.set_fact:
     teleport_repo_id: "teleport-{{ teleport_channel | replace('/', '-') }}"
+    # teleport_repo_id: "teleport"
     os_major_version: "{{ ansible_distribution_major_version }}"
   tags: [setup]
 
@@ -24,7 +25,7 @@
   ansible.builtin.yum_repository:
     name: "{{ teleport_repo_id }}"
     description: "Gravitational Teleport {{ teleport_channel }}"
-    baseurl: "{{ teleport_yum_baseurl }}/rhel/{{ os_major_version }}/$basearch/{{ teleport_channel }}"
+    baseurl: "{{ teleport_yum_baseurl }}/rhel/7/Teleport/$basearch/{{ teleport_channel }}"
     enabled: true
     gpgcheck: true
     gpgkey: "{{ teleport_gpg_key_url }}"
