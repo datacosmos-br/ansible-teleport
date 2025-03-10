@@ -53,8 +53,8 @@
 - name: Manage Teleport service
   tags: [service]
   block:
-    - name: Configure service daemon
-      ansible.builtin.include_tasks: service/daemon_management.yml
+    # - name: Configure service daemon
+    #   ansible.builtin.include_tasks: service/daemon_management.yml
     - name: Configure systemd integration
       ansible.builtin.include_tasks: service/systemd.yml
       when: teleport_control_systemd | bool
