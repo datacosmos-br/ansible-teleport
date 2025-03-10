@@ -1,16 +1,15 @@
 ---
 version: v3
 teleport:
-{% if teleport_nodename|string %}
+{% if teleport_nodename | string %}
   nodename: {{ teleport_nodename }}
 {% endif %}
   auth_token: "{{ teleport_auth_token }}"
   ca_pin: "{{ teleport_ca_pin }}"
-{% if teleport_auth_server|string %}
-  auth_server: {{ teleport_auth_server }}
-{% endif %}
-{% if teleport_proxy_server|string %}
-  proxy_server: {{ teleport_proxy_server }}
+{% if teleport_proxy_server | string %}
+  proxy_server: "{{ teleport_proxy_server }}"
+{% elif teleport_auth_server | string %}
+  auth_server: "{{ teleport_auth_server }}"
 {% endif %}
   log:
     output: stderr
@@ -20,14 +19,16 @@ teleport:
   diag_addr: ""
 ssh_service:
   enabled: "yes"
-{% if teleport_ssh_labels | length > 0 %}
+{% if (teleport_ssh_labels | default([])) | length > 0 %}
   labels:
-{% for ssh_label in teleport_ssh_labels %}
-    {{ ssh_label.k }}: {{ ssh_label.v }}
+{% for ssh_label in teleport_ssh_labels | default([]) %}
+{% for key, value in ssh_label.items() %}
+    {{ key }}: {{ value }}
+{% endfor %}
 {% endfor %}
 {% endif %}
-{%- if teleport_ssh_commands %}
-  commands: {{ teleport_ssh_commands }}
+{% if (teleport_ssh_commands | default([])) | length > 0 %}
+  commands: {{ teleport_ssh_commands | default([]) }}
 {% endif %}
 proxy_service:
   enabled: "no"

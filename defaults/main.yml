@@ -6,6 +6,9 @@ teleport_architecture: "amd64-bin"
 teleport_channel: "stable/v17"
 teleport_edition: "oss"
 teleport_package: teleport
+teleport_gpg_key_url: "https://rpm.releases.teleport.dev/RPM-GPG-KEY-teleport"
+teleport_yum_baseurl: "https://yum.releases.teleport.dev"
+teleport_repo_file: "/etc/yum.repos.d/teleport.repo"
 teleport_package_state: present
 teleport_create_config: true
 teleport_auth_token: ""

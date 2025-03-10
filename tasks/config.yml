@@ -1,14 +1,4 @@
 ---
-- name: Copy Teleport configuration.
-  ansible.builtin.template:
-    src: "{{ teleport_config_template }}"
-    dest: "{{ teleport_config_path }}"
-    owner: root
-    group: root
-    mode: "0600"
-    backup: "{{ teleport_backup_config }}"
-  notify: restart teleport
-
 - name: "Check if a teleport configuration is present"
   ansible.builtin.stat:
     path: "{{ teleport_config_path }}"
@@ -26,6 +16,6 @@
     owner: "root"
     group: "root"
     mode: "0600"
-    backup: "{{ backup_teleport_config }}"
+    backup: "{{ teleport_backup_config }}"
   when: teleport_template_config
   notify: Reload_Teleport

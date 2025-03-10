@@ -17,8 +17,8 @@
   when: ansible_pkg_mgr in ['yum', 'dnf']
 
 - name: "Install yum-utils package if needed"
-  ansible.builtin.dnf:
-    name: "{{ yum_utils_pkg }}"
+  ansible.builtin.package:
+    name: yum-utils
     state: present
   become: true
   when: ansible_pkg_mgr in ['yum', 'dnf']
@@ -27,7 +27,7 @@
   ansible.builtin.yum_repository:
     name: "teleport"
     description: "Gravitational Teleport packages"
-    baseurl: "{{ teleport_yum_baseurl }}/{{ teleport_repo_id }}/{{ os_major_version }}/Teleport/{{ ansible_architecture }}/{{ teleport_channel }}"
+    baseurl: "{{ teleport_yum_baseurl }}/rhel/{{ os_major_version }}/Teleport/{{ ansible_architecture }}/{{ teleport_channel }}"
     enabled: true
     gpgcheck: true
     gpgkey: "{{ teleport_gpg_key_url }}"

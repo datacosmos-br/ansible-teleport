@@ -1,4 +1,11 @@
 ---
+- name: Set fact is_container
+  ansible.builtin.set_fact:
+    is_container: true
+  when: >
+    (ansible_virtualization_type is defined and
+      (ansible_virtualization_type == "docker" or ansible_virtualization_type == "containerd")
+    )
 
 - name: "Lookup the cloud server version if none was provided"
   ansible.builtin.include_tasks: detect_cloud_version.yml
