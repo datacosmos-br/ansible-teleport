@@ -2,7 +2,7 @@
 - name: Copy Teleport configuration.
   ansible.builtin.template:
     src: "{{ teleport_config_template }}"
-    dest: "{{ teleport_config_path  }}"
+    dest: "{{ teleport_config_path }}"
     owner: root
     group: root
     mode: "0600"
