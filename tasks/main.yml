@@ -11,25 +11,31 @@
       ansible.builtin.include_tasks: preflight/version.yml
       tags: [validation, always]
 
-- name: Configure OS environment
-  tags: [setup]
-  block:
-    - name: Install RedHat dependencies
-      ansible.builtin.include_tasks: setup/redhat.yml
-      when: ansible_os_family == 'RedHat'
-    - name: Install Debian dependencies
-      ansible.builtin.include_tasks: setup/debian.yml
-      when: ansible_os_family == 'Debian'
-
-- name: Install Teleport package
+- name: Download Teleport install script
+  ansible.builtin.get_url:
+    url: "https://{{ teleport_proxy_server }}/scripts/install.sh"
+    dest: "/tmp/install.sh"
+    mode: '0755'
   tags: [install]
-  block:
-    - name: Install using package manager
-      ansible.builtin.include_tasks: install/package.yml
-      when: ansible_os_family in ['RedHat', 'Debian']
-    - name: Install from tarball
-      ansible.builtin.include_tasks: install/tarball.yml
-      when: ansible_os_family not in ['RedHat', 'Debian']
+
+- name: Install Teleport using install script
+  ansible.builtin.shell: |
+    set -o pipefail
+    sudo /tmp/install.sh
+  environment:
+    TELEPORT_VERSION: "{{ teleport_version }}"
+    TELEPORT_EDITION: "{{ teleport_edition | default('oss') }}"
+  become: true
+  args:
+    creates: "/usr/local/bin/teleport"
+    executable: /bin/bash
+  tags: [install]
+
+- name: Remove install script
+  ansible.builtin.file:
+    path: "/tmp/install.sh"
+    state: absent
+  tags: [install]
 
 - name: Configure cluster authentication
   tags: [security]

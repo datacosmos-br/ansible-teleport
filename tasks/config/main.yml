@@ -1,84 +1,93 @@
 # tasks/config/main.yml
 ---
-- name: Check existing configuration
-  ansible.builtin.stat:
-    path: "{{ teleport_config_path }}"
-  register: teleport_config_status
+- name: Ensure teleport_config_dir directory exists
+  ansible.builtin.file:
+    path: "{{ teleport_config_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: '0700'
+  become: true
+  tags: [configuration, security]
+
+- name: Render new configuration to temporary file
+  ansible.builtin.template:
+    src: "{{ teleport_config_template }}"
+    dest: "/tmp/new_teleport_config.yaml"
+    owner: root
+    group: root
+    mode: "0600"
+  changed_when: false
   tags: [configuration]
 
-- name: Manage Teleport configuration lifecycle
-  block:
-    - name: Backup existing configuration
-      ansible.builtin.copy:
-        src: "{{ teleport_config_path }}"
-        dest: "{{ teleport_config_path }}.bak"
-        remote_src: true
-        mode: "0600"
-      when:
-        - teleport_backup_config | bool
-        - teleport_config_status.stat.exists
-      tags: [configuration]
+- name: Check existing configuration file
+  ansible.builtin.stat:
+    path: "{{ teleport_config_path }}"
+  register: current_config
+  tags: [configuration]
 
-    - name: Apply new configuration template
-      ansible.builtin.template:
-        src: "{{ teleport_config_template }}"
-        dest: "{{ teleport_config_path }}"
-        owner: "root"
-        group: "root"
-        mode: "0600"
-        # validate: "/usr/local/bin/teleport validate --config %s"
-      notify: Reload Teleport service
-      tags: [configuration]
+- name: Check new configuration file checksum
+  ansible.builtin.stat:
+    path: "/tmp/new_teleport_config.yaml"
+  register: new_config
+  changed_when: false
+  tags: [configuration]
 
+- name: Backup current configuration if new configuration is different
+  ansible.builtin.copy:
+    src: "{{ teleport_config_path }}"
+    dest: "{{ teleport_config_path }}.bak"
+    remote_src: true
+    mode: "0600"
+  when:
+    - teleport_backup_config | bool
+    - current_config.stat.exists
+    - current_config.stat.checksum != new_config.stat.checksum
+  tags: [configuration]
+
+- name: Apply new configuration from temporary file
+  ansible.builtin.copy:
+    src: "/tmp/new_teleport_config.yaml"
+    dest: "{{ teleport_config_path }}"
+    owner: root
+    group: root
+    mode: "0600"
+  notify: Reload Teleport service
+  tags: [configuration]
+
+- name: Remove temporary configuration file
+  ansible.builtin.file:
+    path: "/tmp/new_teleport_config.yaml"
+    state: absent
+  tags: [configuration]
 - name: Determine if security credentials changed
   ansible.builtin.set_fact:
     security_credentials_changed: >-
-      {{ (legacy_auth_token | default('')) != (teleport_auth_token | default('')) or
-         (legacy_ca_pin | default('')) != (teleport_ca_pin | default('')) }}
+      {{  (legacy_auth_token | default('')) != (teleport_auth_token | default('')) or
+          (legacy_ca_pin | default('')) != (teleport_ca_pin | default('')) }}
   when: legacy_config is defined
+  tags: [security]
 
 - name: Ensure security_credentials_changed is defined
   ansible.builtin.set_fact:
     security_credentials_changed: false
   when: security_credentials_changed is not defined
+  tags: [security]
 
-- name: Handle security changes
+- name: Handle security changes and flush ephemeral data if credentials changed
   when: (security_credentials_changed | default(false)) | bool
   tags: [security]
   block:
-    - name: Get current config checksum
+    - name: Get current configuration checksum
       ansible.builtin.stat:
         path: "{{ teleport_config_path }}"
       register: config_check
       changed_when: false
       when: not is_container | bool
 
-    # - name: Generate new configuration
-    #   ansible.builtin.command: teleport configure --config={{ teleport_config_path }}
-    #   register: config_generate
-    #   changed_when: config_check.stat.checksum != (teleport_config_path | checksum)
-    #   notify:
-    #     - Restart Teleport service
-    #     - Log configuration change
-    #   when: not is_container | bool
-
-    - name: Flush ephemeral data
+    - name: Flush ephemeral data (if any)
       ansible.builtin.file:
         path: "/var/lib/teleport/proc/"
         state: absent
-      changed_when: flush_ephemeral_data.files_deleted > 0
       register: flush_ephemeral_data
-
-
-  # rescue:
-  #   - name: Handle configuration errors
-  #     ansible.builtin.fail:
-  #       msg: "Configuration management failed. Manual intervention required."
-  #     tags: [configuration]
-#
-#
-#- name: Verify configuration syntax
-#  ansible.builtin.command:
-#    cmd: "/usr/local/bin/teleport validate --config {{ teleport_config_path }}"
-#  changed_when: false
-#  tags: [configuration, validation]
+      changed_when: flush_ephemeral_data.files_deleted > 0
