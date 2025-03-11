@@ -60,8 +60,49 @@ teleport_labels:
 
 # SSH Service
 teleport_ssh_enabled: true
+# SSH service listen address.
+# For example, "0.0.0.0:3022" listens on all interfaces at port 3022.
+teleport_ssh_listen_addr: "0.0.0.0:3022"
+# Default login allowed for SSH access.
+# Typically "root" or another user based on your access policy.
+teleport_ssh_default_login: '' # "root"
+# Additional allowed SSH logins.
+# Provide a list of usernames to allow besides the default login.
+# Example: ["admin", "ubuntu"]
+teleport_ssh_additional_logins: []
+#  - "admin"
+#  - "ubuntu"
+# SSH-specific labels.
+# Define a list of key/value pairs to tag the SSH service.
+# Example:
+#   - key: "role"
+#     value: "ssh"
+#   - key: "department"
+#     value: "IT"
 teleport_ssh_labels: []
+#  - key: "role"
+#    value: "ssh"
+#  - key: "department"
+#    value: "IT"
+# Custom SSH commands available via Teleport.
+# Provide a list of commands (as strings) that users can execute.
+# Example: ["uptime", "free -m"]
 teleport_ssh_commands: []
+#  - "uptime"
+#  - "free -m"
+# SSH session recording settings.
+# Enable session recording if true.
+teleport_ssh_session_recording: true
+# Mode for session recording: "node" (recorded at the node) or "proxy" (recorded at the proxy).
+teleport_ssh_session_mode: "node"  # Example: "node"
+# SSH session timeout.
+# Specify a timeout value, e.g., "30s" for 30 seconds.
+teleport_ssh_timeout: "30s"
+# Public keys to inject for SSH access.
+# Provide a list of SSH public keys.
+# Example:
+#   - "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC1EXAMPLEKEY user@example.com"
+teleport_ssh_pub_keys: []
 
 # Proxy Service
 teleport_proxy_enabled: false

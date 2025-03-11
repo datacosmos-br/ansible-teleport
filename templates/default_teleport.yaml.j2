@@ -19,6 +19,12 @@ auth_service:
 # SSH Service
 ssh_service:
   enabled: {{ teleport_ssh_enabled | default(true) | bool | ternary('yes', 'no') }}
+  listen_addr: "{{ teleport_ssh_listen_addr | default('0.0.0.0:3022') }}"
+  logins:
+    - "{{ teleport_ssh_default_login | default('') }}"
+  {% if teleport_ssh_additional_logins is defined and teleport_ssh_additional_logins | length > 0 %}
+  logins: {{ ([ teleport_ssh_default_login | default('') ] + teleport_ssh_additional_logins) | unique | to_nice_yaml(indent=2) | indent(2) }}
+  {% endif %}
 {% if teleport_ssh_labels or teleport_labels %}
   labels:
 {% for label in teleport_labels | default([]) %}
@@ -40,9 +46,15 @@ ssh_service:
 {% endif %}
 {% endfor %}
 {% endif %}
-
-{% if teleport_ssh_commands %}
+{% if teleport_ssh_commands is defined %}
   commands: {{ teleport_ssh_commands | to_json }}
+{% endif %}
+  session_recording:
+    enabled: {{ teleport_ssh_session_recording | default(false) | bool | ternary('yes', 'no') }}
+    mode: "{{ teleport_ssh_session_mode | default('node') }}"
+  timeout: "{{ teleport_ssh_timeout | default('30s') }}"
+{% if teleport_ssh_pub_keys is defined %}
+  pub_keys: {{ teleport_ssh_pub_keys | to_nice_yaml(indent=2) | indent(2) }}
 {% endif %}
 
 # Proxy Service
