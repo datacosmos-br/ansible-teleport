@@ -58,48 +58,59 @@ teleport_labels:
   - key: "real_hostname"
     value: "{{ ansible_fqdn }}"
 
-# SSH Service
-teleport_ssh_enabled: true
-# SSH service listen address.
-# For example, "0.0.0.0:3022" listens on all interfaces at port 3022.
-teleport_ssh_listen_addr: "0.0.0.0:3022"
-# Allowed SSH logins.
-# Provide a list of usernames to allow logins
-# Example: ["admin", "ubuntu"]
-teleport_ssh_logins: []
-#  - "admin"
-#  - "ubuntu"
-# SSH-specific labels.
-# Define a list of key/value pairs to tag the SSH service.
+# SSH Service Defaults for Teleport
+# ref: https://github.com/gravitational/teleport/blob/master/docs/pages/includes/config-reference/ssh-service.yaml
+# The following values follow the official Teleport SSH service specification.
+# If a value is not provided, it will be left empty or defaulted to Teleport's default.
+# Turns the 'ssh' role on (default: yes)
+teleport_ssh_enabled: true  # e.g., true
+# IP and port for SSH service to bind to (default: "0.0.0.0:3022")
+teleport_ssh_listen_addr: "0.0.0.0:3022"  # e.g., "0.0.0.0:3022"
+# Optional public address for SSH service (useful if users connect directly to nodes)
+teleport_ssh_public_addr: ""  # e.g., "node.example.com:3022"
+# Labels to attach to the SSH service (as a mapping)
 # Example:
-#   - key: "role"
-#     value: "ssh"
-#   - key: "department"
-#     value: "IT"
-teleport_ssh_labels: []
-#  - key: "role"
-#    value: "ssh"
-#  - key: "department"
-#    value: "IT"
-# Custom SSH commands available via Teleport.
-# Provide a list of commands (as strings) that users can execute.
-# Example: ["uptime", "free -m"]
+#   role: leader
+#   type: postgres
+teleport_ssh_labels: {}  # e.g., { role: "leader", type: "postgres" }
+# Commands to periodically execute; their output is used as node labels.
+# Each command must be a mapping with:
+#   name: descriptive name of the command
+#   command: a list of command arguments
+#   period: duration string (e.g., "1h0m0s")
+# Example:
+# teleport_ssh_commands:
+#   - name: arch
+#     command: ["/bin/uname", "-p"]
+#     period: "1h0m0s"
 teleport_ssh_commands: []
-#  - "uptime"
-#  - "free -m"
-# SSH session recording settings.
-# Enable session recording if true.
-teleport_ssh_session_recording: true
-# Mode for session recording: "node" (recorded at the node) or "proxy" (recorded at the proxy).
-teleport_ssh_session_mode: "node"  # Example: "node"
-# SSH session timeout.
-# Specify a timeout value, e.g., "30s" for 30 seconds.
-teleport_ssh_timeout: "30s"
-# Public keys to inject for SSH access.
-# Provide a list of SSH public keys.
-# Example:
-#   - "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC1EXAMPLEKEY user@example.com"
-teleport_ssh_pub_keys: []
+# Enables reading ~/.tsh/environment on the server (default: false)
+teleport_ssh_permit_user_env: false
+# Disables automatic creation of host users on this SSH node (default: true)
+teleport_ssh_disable_create_host_user: true
+# Enhanced Session Recording settings
+# Default values: enabled false, command_buffer_size 8, disk_buffer_size 128,
+# network_buffer_size 8, cgroup_path "/cgroup2", root_path "/teleport"
+teleport_ssh_enhanced_recording: false
+teleport_ssh_command_buffer_size: 8
+teleport_ssh_disk_buffer_size: 128
+teleport_ssh_network_buffer_size: 8
+teleport_ssh_cgroup_path: "/cgroup2"
+teleport_ssh_recording_root_path: "/teleport"
+# PAM integration configuration
+# Default: enabled yes, service_name "sshd", use_pam_auth true
+teleport_ssh_pam_enabled: true
+teleport_ssh_pam_service_name: "sshd"
+teleport_ssh_use_pam_auth: true
+# Enables TCP forwarding (default: true)
+teleport_ssh_port_forwarding: true
+# X11 forwarding settings
+# Default: enabled yes, display_offset 10, max_display 1010 (display_offset + 1000)
+teleport_ssh_x11_enabled: true
+teleport_ssh_x11_display_offset: 10
+teleport_ssh_x11_max_display: 1010
+# Enables remote file operations via SCP/SFTP (default: true)
+teleport_ssh_file_copy: true
 
 # Proxy Service
 teleport_proxy_enabled: false
