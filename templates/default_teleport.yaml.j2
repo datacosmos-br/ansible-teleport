@@ -20,11 +20,10 @@ auth_service:
 ssh_service:
   enabled: {{ teleport_ssh_enabled | default(true) | bool | ternary('yes', 'no') }}
   listen_addr: "{{ teleport_ssh_listen_addr | default('0.0.0.0:3022') }}"
-  logins:
-    - "{{ teleport_ssh_default_login | default('') }}"
-  {% if teleport_ssh_additional_logins is defined and teleport_ssh_additional_logins | length > 0 %}
-  logins: {{ ([ teleport_ssh_default_login | default('') ] + teleport_ssh_additional_logins) | unique | to_nice_yaml(indent=2) | indent(2) }}
-  {% endif %}
+{%- if teleport_ssh_public_addr | default('') != '' %}
+  public_addr: "{{ teleport_ssh_public_addr }}"
+{%- endif %}
+
 {% if teleport_ssh_labels or teleport_labels %}
   labels:
 {% for label in teleport_labels | default([]) %}
@@ -46,16 +45,33 @@ ssh_service:
 {% endif %}
 {% endfor %}
 {% endif %}
-{% if teleport_ssh_commands is defined %}
-  commands: {{ teleport_ssh_commands | to_json }}
-{% endif %}
-  session_recording:
-    enabled: {{ teleport_ssh_session_recording | default(false) | bool | ternary('yes', 'no') }}
-    mode: "{{ teleport_ssh_session_mode | default('node') }}"
-  timeout: "{{ teleport_ssh_timeout | default('30s') }}"
-{% if teleport_ssh_pub_keys is defined %}
-  pub_keys: {{ teleport_ssh_pub_keys | to_nice_yaml(indent=2) | indent(2) }}
-{% endif %}
+{%- if teleport_ssh_commands is defined and teleport_ssh_commands | length > 0 %}
+  commands:
+{%- for cmd in teleport_ssh_commands %}
+    - name: {{ cmd.name }}
+      command: {{ cmd.command | to_json }}
+      period: "{{ cmd.period }}"
+{%- endfor %}
+{%- endif %}
+  permit_user_env: {{ teleport_ssh_permit_user_env | default(false) | bool | ternary('yes', 'no') }}
+  disable_create_host_user: {{ teleport_ssh_disable_create_host_user | default(true) | bool | ternary('yes', 'no') }}
+  enhanced_recording:
+    enabled: {{ teleport_ssh_enhanced_recording | default(false) | bool | ternary('yes', 'no') }}
+    command_buffer_size: {{ teleport_ssh_command_buffer_size | default(8) }}
+    disk_buffer_size: {{ teleport_ssh_disk_buffer_size | default(128) }}
+    network_buffer_size: {{ teleport_ssh_network_buffer_size | default(8) }}
+    cgroup_path: "{{ teleport_ssh_cgroup_path | default('/cgroup2') }}"
+    root_path: "{{ teleport_ssh_recording_root_path | default('/teleport') }}"
+  pam:
+    enabled: {{ teleport_ssh_pam_enabled | default(true) | bool | ternary('yes', 'no') }}
+    service_name: "{{ teleport_ssh_pam_service_name | default('sshd') }}"
+    use_pam_auth: {{ teleport_ssh_use_pam_auth | default(true) | bool | ternary('yes', 'no') }}
+  port_forwarding: {{ teleport_ssh_port_forwarding | default(true) | bool | ternary('yes', 'no') }}
+  x11:
+    enabled: {{ teleport_ssh_x11_enabled | default(true) | bool | ternary('yes', 'no') }}
+    display_offset: {{ teleport_ssh_x11_display_offset | default(10) }}
+    max_display: {{ teleport_ssh_x11_max_display | default(1010) }}
+  ssh_file_copy: {{ teleport_ssh_file_copy | default(true) | bool | ternary('yes', 'no') }}
 
 # Proxy Service
 proxy_service:

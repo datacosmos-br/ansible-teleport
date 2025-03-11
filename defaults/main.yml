@@ -63,13 +63,10 @@ teleport_ssh_enabled: true
 # SSH service listen address.
 # For example, "0.0.0.0:3022" listens on all interfaces at port 3022.
 teleport_ssh_listen_addr: "0.0.0.0:3022"
-# Default login allowed for SSH access.
-# Typically "root" or another user based on your access policy.
-teleport_ssh_default_login: '' # "root"
-# Additional allowed SSH logins.
-# Provide a list of usernames to allow besides the default login.
+# Allowed SSH logins.
+# Provide a list of usernames to allow logins
 # Example: ["admin", "ubuntu"]
-teleport_ssh_additional_logins: []
+teleport_ssh_logins: []
 #  - "admin"
 #  - "ubuntu"
 # SSH-specific labels.
